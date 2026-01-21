@@ -1,0 +1,53 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+	<meta charset="utf-8">
+	<meta name="viewport" content="width=device-width,initial-scale=1">
+	<title>{% block title %}College Core{% endblock %}</title>
+	<link rel="stylesheet" href="{% static 'css/style.css' %}">
+	{% block head %}{% endblock %}
+</head>
+<body>
+	<div class="app">
+		<aside class="sidebar" aria-label="Навигация">
+			<div class="sidebar__top">
+				<div class="brand">
+					<span class="brand__icon"><i class="ri-command-fill"></i></span>
+					<span class="brand__text">College Core</span>
+				</div>
+				<nav class="nav">
+					<a class="nav__item is-active" href="/" aria-current="page">
+						<i class="ri-home-5-line"></i><span>Главная</span>
+					</a>
+					<a class="nav__item" href="/schedule/">
+						<i class="ri-calendar-line"></i><span>Расписание</span>
+					</a>
+					<a class="nav__item" href="#">
+						<i class="ri-book-mark-line"></i><span>Оценки</span>
+					</a>
+					<a class="nav__item" href="#">
+						<i class="ri-settings-3-line"></i><span>Настройки</span>
+					</a>
+				</nav>
+			</div>
+
+			<div class="sidebar__bottom">
+				<form action="{% url 'logout' %}" method="post">
+					{% csrf_token %}
+					<button type="submit" class="nav__item nav__item--btn">
+						<i class="ri-logout-box-r-line"></i><span>Выйти</span>
+					</button>
+				</form>
+			</div>
+		</aside>
+
+		<main class="main">
+			{% block content %}{% endblock %}
+		</main>
+	</div>
+
+	<script src="{% static 'js/tilt.js' %}" defer></script>
+	{% block scripts %}{% endblock %}
+</body>
+</html>

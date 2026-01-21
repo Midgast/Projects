@@ -1,0 +1,134 @@
+{% extends 'core/base.html' %}
+{% load static %}
+
+{% block title %}Кабинет Студента{% endblock %}
+
+{% block content %}
+  <header class="topbar">
+    <div class="hello">
+      <h1 class="hello__title">Привет, {{ profile.user.first_name|default:profile.user.username }} <span aria-hidden="true">👋</span></h1>
+      <p class="hello__sub">{{ profile.course }} курс, {{ profile.specialty }}</p>
+    </div>
+
+    <div class="me" aria-label="Профиль">
+      {% if profile.avatar %}
+        <img class="me__avatar" src="{{ profile.avatar.url }}" alt="Аватар">
+      {% else %}
+        <div class="me__avatar me__avatar--fallback" aria-hidden="true">👨‍🎓</div>
+      {% endif %}
+    </div>
+  </header>
+
+  <section class="bento" aria-label="Виджеты">
+      <!-- Widget 1: Big -->
+      <article class="card tilt" data-tilt>
+        <div class="card__head">
+          <h2 class="card__title">Мой рейтинг</h2>
+          <span class="pill">Актуально</span>
+        </div>
+
+        <div class="rating">
+          <div class="ring" role="img" aria-label="Рейтинг и посещаемость">
+            <svg viewBox="0 0 36 36" class="ring__svg" aria-hidden="true">
+              <path class="ring__bg" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"/>
+              <path class="ring__fg"
+                    style="stroke-dasharray: {{ stats.attendance }}, 100"
+                    d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"/>
+            </svg>
+            <div class="ring__text">
+              <span class="ring__value">{{ stats.gpa }}</span>
+              <span class="ring__label">GPA</span>
+            </div>
+          </div>
+
+          <div class="rating__meta">
+            <div class="stat">
+              <span class="stat__k">Посещаемость</span>
+              <span class="stat__v">{{ stats.attendance }}%</span>
+            </div>
+            <div class="stat">
+              <span class="stat__k">Статус</span>
+              <span class="stat__v">Стабильно</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="glare" aria-hidden="true"></div>
+      </article>
+
+      <!-- Widget 2: Medium -->
+      <article class="card tilt" data-tilt>
+        <div class="card__head">
+          <h2 class="card__title">Следующая пара</h2>
+          <span class="pill pill--accent">Таймер</span>
+        </div>
+
+        {% if next_lesson %}
+          <div class="lesson">
+            <div class="lesson__main">
+              <p class="lesson__subject">{{ next_lesson.subject }}</p>
+              <p class="lesson__meta">{{ next_lesson.location }} • {{ next_lesson.teacher }}</p>
+            </div>
+
+            <div class="countdown" data-countdown data-target="{{ next_lesson_ts|default:'' }}">
+              <span class="countdown__label">Начнётся через</span>
+              <span class="countdown__time">—</span>
+            </div>
+          </div>
+        {% else %}
+          <p class="muted">Сегодня пар нет.</p>
+        {% endif %}
+
+        <div class="glare" aria-hidden="true"></div>
+      </article>
+
+      <!-- Widget 3: Tall -->
+      <article class="card tilt card--tall" data-tilt>
+        <div class="card__head">
+          <h2 class="card__title">Домашние задания</h2>
+          <span class="pill pill--soft">Список</span>
+        </div>
+
+        <ul class="tasks" role="list">
+          {% for task in homeworks %}
+            <li class="task {% if task.completed %}is-done{% endif %}" data-task data-id="{{ task.id }}">
+              <button class="task__btn" type="button" aria-label="Отметить задачу выполненной">
+                <span class="task__check" aria-hidden="true"><i class="ri-check-line"></i></span>
+              </button>
+              <div class="task__info">
+                <span class="task__title">{{ task.title }}</span>
+                <span class="task__deadline">{{ task.deadline }}</span>
+              </div>
+            </li>
+          {% empty %}
+            <li class="muted">Задач нет.</li>
+          {% endfor %}
+        </ul>
+
+        <div class="glare" aria-hidden="true"></div>
+      </article>
+
+      <!-- Widget 4: Wide (Новости) -->
+      <article class="card tilt card--wide" data-tilt>
+        <div class="card__head">
+          <h2 class="card__title">Новости</h2>
+          <span class="pill">Сегодня</span>
+        </div>
+
+        <div class="news">
+          {% for item in news_items %}
+            <a class="news__item" href="#" aria-label="Открыть новость">
+              <div class="news__img" style="background-image:url('{{ item.image_url }}');"></div>
+              <div class="news__txt">
+                <span class="news__tag">{{ item.tag }}</span>
+                <span class="news__title">{{ item.title }}</span>
+              </div>
+            </a>
+          {% endfor %}
+        </div>
+
+        <div class="glare" aria-hidden="true"></div>
+      </article>
+    </section>
+  </section>
+{% endblock %}

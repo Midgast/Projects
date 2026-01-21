@@ -1,0 +1,207 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <title>Вход | College Core</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    
+    <link rel="stylesheet" href="{% static 'css/style.css' %}">
+    
+    <style>
+        /* Специфичные стили только для страницы входа */
+        body {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+            overflow: hidden; /* Чтобы не было прокрутки */
+        }
+
+        .login-card {
+            width: 100%;
+            max-width: 400px;
+            padding: 40px;
+            text-align: center;
+            
+            /* Эффект стекла (наследует переменные из style.css) */
+            background: var(--glass-bg);
+            border: 1px solid var(--glass-border);
+            border-radius: var(--card-radius);
+            backdrop-filter: blur(40px);
+            -webkit-backdrop-filter: blur(40px);
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+            
+            /* Для 3D эффекта */
+            transform-style: preserve-3d;
+            transform: perspective(1000px);
+        }
+
+        .login-header {
+            margin-bottom: 30px;
+            transform: translateZ(20px); /* Выдвигаем текст вперед */
+        }
+
+        .login-header h2 {
+            font-size: 28px;
+            font-weight: 700;
+            margin-bottom: 10px;
+        }
+
+        .login-header p {
+            color: var(--text-secondary);
+            font-size: 15px;
+        }
+
+        /* Поля ввода */
+        .input-group {
+            margin-bottom: 20px;
+            text-align: left;
+            transform: translateZ(10px);
+        }
+
+        .input-group label {
+            display: block;
+            margin-bottom: 8px;
+            color: var(--text-secondary);
+            font-size: 13px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .glass-input {
+            width: 100%;
+            padding: 14px 16px;
+            border: 1px solid var(--glass-border);
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 14px;
+            color: var(--text-primary);
+            font-size: 16px;
+            outline: none;
+            transition: all 0.3s ease;
+        }
+
+        .glass-input:focus {
+            border-color: var(--accent-color);
+            background: rgba(255, 255, 255, 0.3);
+            box-shadow: 0 0 0 4px rgba(0, 122, 255, 0.1);
+        }
+
+        /* Кнопка */
+        .login-btn {
+            width: 100%;
+            padding: 16px;
+            margin-top: 10px;
+            background: var(--accent-color);
+            color: white;
+            border: none;
+            border-radius: 14px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            transform: translateZ(20px);
+        }
+
+        .login-btn:hover {
+            opacity: 0.9;
+            transform: translateZ(25px) scale(1.02);
+            box-shadow: 0 10px 20px rgba(0, 122, 255, 0.3);
+        }
+
+        /* Сообщение об ошибке */
+        .error-message {
+            background: rgba(255, 59, 48, 0.1);
+            color: var(--danger-color);
+            padding: 12px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            font-size: 14px;
+            border: 1px solid rgba(255, 59, 48, 0.2);
+            transform: translateZ(10px);
+        }
+        
+        /* Аватарка (заглушка) */
+        .login-avatar {
+            width: 80px;
+            height: 80px;
+            background: rgba(0,122,255,0.1);
+            color: var(--accent-color);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 32px;
+            margin: 0 auto 20px auto;
+            border: 1px solid var(--glass-border);
+        }
+    </style>
+</head>
+<body>
+
+    <div class="login-card tilt-card">
+        <div class="login-header">
+            <div class="login-avatar">🎓</div>
+            <h2>С возвращением</h2>
+            <p>Войдите в систему College Core</p>
+        </div>
+        
+        <form method="post">
+            {% csrf_token %}
+            
+            {% if form.errors %}
+                <div class="error-message">
+                    Неверное имя пользователя или пароль.
+                </div>
+            {% endif %}
+            
+            {% if error %}
+                <div class="error-message">
+                    {{ error }}
+                </div>
+            {% endif %}
+
+            <div class="input-group">
+                <label for="id_username">Логин</label>
+                <input type="text" name="username" id="id_username" class="glass-input" placeholder="Введите логин" required autofocus>
+            </div>
+
+            <div class="input-group">
+                <label for="id_password">Пароль</label>
+                <input type="password" name="password" id="id_password" class="glass-input" placeholder="••••••••" required>
+            </div>
+
+            <button type="submit" class="login-btn">Войти</button>
+        </form>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const card = document.querySelector('.tilt-card');
+            
+            if (card) {
+                card.addEventListener('mousemove', (e) => {
+                    const rect = card.getBoundingClientRect();
+                    const x = e.clientX - rect.left;
+                    const y = e.clientY - rect.top;
+                    
+                    const centerX = rect.width / 2;
+                    const centerY = rect.height / 2;
+                    
+                    // Вычисляем угол наклона (максимум 5 градусов, чтобы не укачивало)
+                    const rotateX = ((y - centerY) / centerY) * -5;
+                    const rotateY = ((x - centerX) / centerX) * 5;
+
+                    card.style.transform = `perspective(1000px) rotateX(${rotateX}deg) rotateY(${rotateY}deg)`;
+                });
+
+                card.addEventListener('mouseleave', () => {
+                    // Возвращаем в исходное положение
+                    card.style.transform = 'perspective(1000px) rotateX(0) rotateY(0)';
+                });
+            }
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,69 @@
+{% extends 'core/base.html' %}
+{% load static %}
+
+{% block title %}Кабинет Преподавателя{% endblock %}
+
+{% block content %}
+    <header class="topbar">
+        <div class="user-greeting">
+            <h1>Добрый день, {{ profile.full_name }}</h1>
+            <p class="subtitle">Предмет: {{ profile.subject }}</p>
+        </div>
+        <div class="user-profile">
+            {% if profile.avatar %}
+                <img src="{{ profile.avatar.url }}" class="avatar">
+            {% else %}
+                <div class="avatar" style="background: #FF9500; color: white; display:flex; justify-content:center; align-items:center;">T</div>
+            {% endif %}
+        </div>
+    </header>
+
+    <div class="bento-grid">
+        <article class="card tilt-card" style="grid-column: span 1; grid-row: span 1;">
+            <div class="card-content">
+                <div class="card-header-row"><i class="ri-file-search-line icon-dim" style="color: var(--accent-color);"></i></div>
+                <h2 style="font-size: 40px; margin: 10px 0;">{{ pending_works }}</h2>
+                <p style="color: var(--text-secondary);">Работы ждут проверки</p>
+            </div>
+            <div class="glare"></div>
+        </article>
+
+        <article class="card tilt-card" style="grid-column: span 1; grid-row: span 1;">
+            <div class="card-content">
+                <h3>Сейчас</h3>
+                <h2 style="color: var(--success-color);">{{ next_class }}</h2>
+                <p>Лекция • 2 курс</p>
+            </div>
+            <div class="glare"></div>
+        </article>
+
+        <article class="card tilt-card" style="grid-column: span 2; grid-row: span 2;">
+            <h3>Последние сдачи</h3>
+            <ul class="task-list">
+                <li class="task-item">
+                    <div class="task-info">
+                        <span class="task-title">Алина К.</span>
+                        <span class="task-deadline">Сдала: Курсовая работа</span>
+                    </div>
+                    <button style="padding: 5px 15px; background: var(--accent-color); border: none; color: white; border-radius: 8px; cursor: pointer;">5</button>
+                </li>
+                <li class="task-item">
+                    <div class="task-info">
+                        <span class="task-title">Бекназар Т.</span>
+                        <span class="task-deadline">Сдал: Лабораторная 1</span>
+                    </div>
+                    <button style="padding: 5px 15px; background: var(--accent-color); border: none; color: white; border-radius: 8px; cursor: pointer;">4</button>
+                </li>
+            </ul>
+            <div class="glare"></div>
+        </article>
+
+        {% for item in news_items %}
+        <article class="card tilt-card" style="background-image: url('{% if item.image %}{{ item.image.url }}{% else %}{{ item.image_url }}{% endif %}'); grid-column: span 2;">
+            <div class="news-overlay"></div>
+            <div class="news-content"><h4>Для преподавателей: {{ item.title }}</h4></div>
+            <div class="glare"></div>
+        </article>
+        {% endfor %}
+    </div>
+{% endblock %}
