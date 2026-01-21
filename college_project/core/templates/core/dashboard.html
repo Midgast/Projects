@@ -129,6 +129,37 @@
 
         <div class="glare" aria-hidden="true"></div>
       </article>
+
+        <!-- Widget 5: Рейтинг студентов -->
+        <article class="card tilt" data-tilt>
+          <div class="card__head">
+            <h2 class="card__title">Рейтинг студентов</h2>
+            <span class="pill">Топ-5 GPA</span>
+          </div>
+          {% if top_students %}
+          <table class="rating-table" style="width:100%;margin-top:10px;">
+            <thead>
+              <tr>
+                <th>Студент</th>
+                <th>Курс</th>
+                <th>GPA</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for s in top_students %}
+              <tr>
+                <td>{{ s.user.first_name|default:s.user.username }}</td>
+                <td>{{ s.course }}</td>
+                <td>{{ s.gpa }}</td>
+              </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+          {% else %}
+          <p class="muted">Нет данных по рейтингу.</p>
+          {% endif %}
+          <div class="glare" aria-hidden="true"></div>
+        </article>
     </section>
   </section>
 {% endblock %}

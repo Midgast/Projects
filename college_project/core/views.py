@@ -2,6 +2,8 @@ from __future__ import annotations
 
 from datetime import datetime, time
 from django.contrib.auth.decorators import login_required
+from django.contrib.auth import get_user_model
+from django.db.utils import OperationalError, ProgrammingError
 from django.contrib.auth import authenticate, login
 from django.http import JsonResponse
 from django.shortcuts import get_object_or_404, render, redirect
@@ -9,15 +11,29 @@ from django.templatetags.static import static as static_url
 from django.views.decorators.http import require_POST
 
 from .models import Student, Teacher, Director, Lesson, Homework, News
-from .models import Submission
-from .forms import SubmissionForm, GradeForm
-from django.contrib.auth.decorators import user_passes_test
-from django.views.decorators.csrf import csrf_exempt
 
 
-@login_required(login_url="login")
 def main_dashboard(request):
+    """
+    Main entry. If user is authenticated, dispatch to role-specific dashboard.
+    If anonymous, create/use a demo `Student` so the site is viewable for testing.
+    """
     user = request.user
+
+    # If anonymous, ensure a demo student exists and show demo dashboard
+    if not user.is_authenticated:
+        try:
+            User = get_user_model()
+            demo_user, _ = User.objects.get_or_create(username='demo')
+            # ensure Student profile exists
+            student, _ = Student.objects.get_or_create(user=demo_user, defaults={
+                'course': 1,
+                'specialty': 'Computer Science',
+            })
+            return student_dashboard(request, student)
+        except (OperationalError, ProgrammingError):
+            # Database (or accounts table) isn't ready — render a static demo page
+            return render(request, "core/demo.html", {})
 
     if hasattr(user, "student"):
         return student_dashboard(request, user.student)
@@ -133,6 +149,7 @@ def student_dashboard(request, student: Student):
             dt = dt + timedelta(days=1)
         next_ts = int(dt.timestamp() * 1000)
 
+    top_students = Student.objects.order_by('-gpa')[:5]
     context = {
         "role": "student",
         "profile": student,
@@ -144,6 +161,10 @@ def student_dashboard(request, student: Student):
             "gpa": float(student.gpa),
             "attendance": int(student.attendance),
         },
+        # Электронная ведомость (оценки)
+        "grade_sheet": __import__('apps.analytics.models', fromlist=['Grade']).Grade.objects.filter(student=student.user).order_by('-created_at'),
+        # Топ-5 студентов по GPA
+        "top_students": top_students,
     }
     return render(request, "core/dashboard.html", context)
 
@@ -158,43 +179,6 @@ def teacher_dashboard(request, teacher: Teacher):
         "next_class": "Группа IT-21 (14:00)",
     }
     return render(request, "core/dashboard_teacher.html", context)
-
-
-@login_required(login_url="login")
-def upload_submission(request, hw_id: int):
-    hw = get_object_or_404(Homework, id=hw_id)
-    # only student owner may upload
-    if not hasattr(request.user, 'student') or request.user.student.id != hw.student_id:
-        return redirect('dashboard')
-
-    if request.method == 'POST':
-        form = SubmissionForm(request.POST, request.FILES)
-        if form.is_valid():
-            sub = form.save(commit=False)
-            sub.homework = hw
-            sub.student = request.user.student
-            sub.save()
-            hw.completed = True
-            hw.save(update_fields=['completed'])
-            return render(request, 'core/form_upload.html', {'success': True, 'submission': sub})
-    else:
-        form = SubmissionForm()
-
-    return render(request, 'core/form_upload.html', {'form': form, 'homework': hw})
-
-
-@login_required(login_url="login")
-@user_passes_test(lambda u: hasattr(u, 'teacher') or u.is_superuser)
-def grade_submission(request, sub_id: int):
-    sub = get_object_or_404(Submission, id=sub_id)
-    if request.method == 'POST':
-        form = GradeForm(request.POST, instance=sub)
-        if form.is_valid():
-            form.save()
-            return redirect('dashboard')
-    else:
-        form = GradeForm(instance=sub)
-    return render(request, 'core/form_upload.html', {'form': form, 'submission': sub, 'grading': True})
 
 
 def director_dashboard(request, director):
