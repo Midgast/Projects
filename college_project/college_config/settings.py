@@ -27,12 +27,6 @@ INSTALLED_APPS = [
     
     # Твоё приложение (ОБЯЗАТЕЛЬНО)
     'core.apps.CoreConfig',
-    # Новые приложения системы колледжа
-    'apps.accounts',
-    'apps.attendance',
-    'apps.scheduling',
-    'apps.news',
-    'apps.analytics',
 ]
 
 MIDDLEWARE = [
@@ -50,7 +44,7 @@ ROOT_URLCONF = 'college_config.urls'
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        'DIRS': [BASE_DIR / 'templates'], # Общая папка шаблонов в корне проекта
+        'DIRS': [], # Django сам ищет шаблоны внутри папок приложений (core/templates)
         'APP_DIRS': True,
         'OPTIONS': {
             'context_processors': [
@@ -112,9 +106,6 @@ STATICFILES_DIRS = [
     BASE_DIR / "static",
 ]
 
-# Папка для собранных статических файлов (используется при deploy)
-STATIC_ROOT = BASE_DIR / 'staticfiles'
-
 # Ссылка для загруженных файлов (аватарок)
 MEDIA_URL = '/media/'
 # Папка, куда сохраняются файлы
@@ -135,7 +126,3 @@ LOGIN_URL = 'login'
 
 # --- 7. ДОПОЛНИТЕЛЬНО ---
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
-
-# Пользовательская модель
-# Ссылка в формате '<app_label>.<ModelName>' — приложение имеет метку 'accounts'
-AUTH_USER_MODEL = 'accounts.CustomUser'

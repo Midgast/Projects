@@ -1,9 +1,9 @@
 # File: core/models.py
 from django.db import models
-from django.conf import settings
+from django.contrib.auth.models import User
 
 class Student(models.Model):
-    user = models.OneToOneField(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
+    user = models.OneToOneField(User, on_delete=models.CASCADE)
     avatar = models.ImageField(upload_to='avatars/', blank=True, null=True)
     course = models.IntegerField(default=1)
     specialty = models.CharField(max_length=100, default="Computer Science")
@@ -31,6 +31,19 @@ class Homework(models.Model):
     def __str__(self):
         return self.title
 
+
+class Submission(models.Model):
+    homework = models.ForeignKey(Homework, on_delete=models.CASCADE, related_name='submissions')
+    student = models.ForeignKey(Student, on_delete=models.CASCADE)
+    file = models.FileField(upload_to='homeworks/', blank=True, null=True)
+    message = models.TextField(blank=True, null=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    grade = models.IntegerField(blank=True, null=True)
+    feedback = models.TextField(blank=True, null=True)
+
+    def __str__(self):
+        return f"Submission {self.id} for {self.homework.title}"
+
 class News(models.Model):
     title = models.CharField(max_length=200)
     tag = models.CharField(max_length=50)
@@ -42,7 +55,7 @@ class News(models.Model):
 # ... (Код Student, Lesson, Homework, News оставляем как был)
 
 class Teacher(models.Model):
-    user = models.OneToOneField(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
+    user = models.OneToOneField(User, on_delete=models.CASCADE)
     full_name = models.CharField(max_length=100)
     avatar = models.ImageField(upload_to='avatars/', blank=True, null=True)
     subject = models.CharField(max_length=100) # Какой предмет ведет
@@ -52,7 +65,7 @@ class Teacher(models.Model):
         return f"Учитель: {self.full_name}"
 
 class Director(models.Model):
-    user = models.OneToOneField(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
+    user = models.OneToOneField(User, on_delete=models.CASCADE)
     full_name = models.CharField(max_length=100)
     avatar = models.ImageField(upload_to='avatars/', blank=True, null=True)
     
