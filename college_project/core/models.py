@@ -31,6 +31,19 @@ class Homework(models.Model):
     def __str__(self):
         return self.title
 
+
+class Submission(models.Model):
+    homework = models.ForeignKey(Homework, on_delete=models.CASCADE, related_name='submissions')
+    student = models.ForeignKey(Student, on_delete=models.CASCADE)
+    file = models.FileField(upload_to='homeworks/', blank=True, null=True)
+    message = models.TextField(blank=True, null=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    grade = models.IntegerField(blank=True, null=True)
+    feedback = models.TextField(blank=True, null=True)
+
+    def __str__(self):
+        return f"Submission {self.id} for {self.homework.title}"
+
 class News(models.Model):
     title = models.CharField(max_length=200)
     tag = models.CharField(max_length=50)
