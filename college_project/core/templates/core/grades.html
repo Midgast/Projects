@@ -1,9 +1,11 @@
 {% extends "core/dashboard_base.html" %}
 
-{% block title %}Оценки — College Core{% endblock %}
+{% block title %}
+  {% if mode == "staff" %}Журнал оценок — College Core{% else %}Оценки — College Core{% endif %}
+{% endblock %}
 
 {% block topbar_left %}
-  <div class="crumbs">Оценки</div>
+  <div class="crumbs">{% if mode == "staff" %}Журнал оценок{% else %}Оценки{% endif %}</div>
 {% endblock %}
 
 {% block content %}
@@ -15,52 +17,75 @@
       <header class="card-h">
         <div>
           <div class="kicker">Цифровая система</div>
-          <h2 class="h2">Мои оценки</h2>
+          <h2 class="h2">{% if mode == "staff" %}Журнал оценок{% else %}Мои оценки{% endif %}</h2>
         </div>
-        <div class="pill">
-          Средний балл: <strong style="margin-left:6px">{{ stats.avg_grade|default:"—" }}</strong>
-        </div>
+
+        {% if mode == "student" %}
+          <div class="pill">
+            Средний балл: <strong style="margin-left:6px">{{ avg_grade|default:"—" }}</strong>
+          </div>
+        {% else %}
+          <div class="pill subtle">
+            Записей: <strong style="margin-left:6px">{{ grades|length|default:0 }}</strong>
+          </div>
+        {% endif %}
       </header>
 
       <div class="card-b">
-        <div class="split">
-          <div class="block">
-            <div class="label">Посещаемость</div>
-            <div class="big">{{ stats.attendance|default:"—" }}</div>
-          </div>
+        {% if mode == "student" %}
+          <div class="split">
+            <div class="block">
+              <div class="label">Посещаемость</div>
+              <div class="big">{{ attendance|default:"—" }}%</div>
+            </div>
 
-          <div class="block">
-            <div class="label">Тренд</div>
-            <div class="trend">
-              <span class="dot"></span>
-              <span class="muted">Обновляется при выставлении оценок</span>
+            <div class="block">
+              <div class="label">Подсказка</div>
+              <div class="muted">Оценки обновляются, когда преподаватель выставляет их в системе.</div>
             </div>
           </div>
-        </div>
 
-        <div class="divider"></div>
+          <div class="divider"></div>
 
-        <div class="grid2">
-          <div class="metric">
-            <div class="metric-label">Сильный предмет</div>
-            <div class="metric-value">{{ best_subject|default:"—" }}</div>
+          <div class="grid2">
+            <div class="metric">
+              <div class="metric-label">Сильный предмет</div>
+              <div class="metric-value">{{ best_subject|default:"—" }}</div>
+            </div>
+            <div class="metric">
+              <div class="metric-label">Нужна подтяжка</div>
+              <div class="metric-value">{{ weak_subject|default:"—" }}</div>
+            </div>
           </div>
-          <div class="metric">
-            <div class="metric-label">Нужна подтяжка</div>
-            <div class="metric-value">{{ weak_subject|default:"—" }}</div>
+        {% else %}
+          <div class="split">
+            <div class="block">
+              <div class="label">Правило</div>
+              <div class="muted">
+                Преподаватель видит только свои предметы. Директор видит всё.
+              </div>
+            </div>
+            <div class="block">
+              <div class="label">Быстрые действия</div>
+              <div class="metric-value">
+                <a class="btn" href="/admin/core/grade/add/">Добавить оценку</a>
+                <a class="btn ghost" href="/admin/core/grade/">Открыть в админке</a>
+              </div>
+            </div>
           </div>
-        </div>
+        {% endif %}
       </div>
     </article>
 
-    <!-- Filter -->
+    <!-- Filters -->
     <article class="card bento-small tilt" data-tilt>
       <header class="card-h">
         <div>
           <div class="kicker">Фильтр</div>
-          <h2 class="h2">Предмет</h2>
+          <h2 class="h2">{% if mode == "staff" %}Предмет / Группа{% else %}Предмет{% endif %}</h2>
         </div>
       </header>
+
       <div class="card-b">
         <form method="get" class="form">
           <select class="input" name="subject">
@@ -71,11 +96,23 @@
               </option>
             {% endfor %}
           </select>
+
+          {% if mode == "staff" %}
+            <select class="input" name="group">
+              <option value="">Все группы</option>
+              {% for g in groups %}
+                <option value="{{ g.id }}" {% if selected_group_id == g.id %}selected{% endif %}>
+                  {{ g.code }}
+                </option>
+              {% endfor %}
+            </select>
+          {% endif %}
+
           <button class="btn" type="submit">Применить</button>
         </form>
 
         <div class="hint">
-          Если список пуст — добавь предметы/оценки через админку или seed.
+          Если список пуст — добавь данные через <code>/admin/</code> или запусти seed.
         </div>
       </div>
     </article>
@@ -85,7 +122,7 @@
       <header class="card-h">
         <div>
           <div class="kicker">Журнал</div>
-          <h2 class="h2">История оценок</h2>
+          <h2 class="h2">{% if mode == "staff" %}Записи{% else %}История оценок{% endif %}</h2>
         </div>
         <div class="pill subtle">
           Всего: {{ grades|length|default:0 }}
@@ -95,29 +132,43 @@
       <div class="card-b">
         {% if grades %}
           <div class="table">
-            <div class="tr th">
-              <div class="td">Дата</div>
-              <div class="td">Предмет</div>
-              <div class="td">Оценка</div>
-              <div class="td">Комментарий</div>
-            </div>
-
-            {% for g in grades %}
-              <div class="tr">
-                <div class="td">
-                  {{ g.created_at|date:"d.m.Y H:i"|default:"—" }}
-                </div>
-                <div class="td">
-                  {{ g.subject.name|default:g.subject|default:"—" }}
-                </div>
-                <div class="td">
-                  <span class="score">{{ g.value|default:"—" }}</span>
-                </div>
-                <div class="td">
-                  <span class="muted">{{ g.note|default:"" }}</span>
-                </div>
+            {% if mode == "staff" %}
+              <div class="tr th">
+                <div class="td">Дата</div>
+                <div class="td">Группа</div>
+                <div class="td">Студент</div>
+                <div class="td">Предмет</div>
+                <div class="td">Оценка</div>
+                <div class="td">Комментарий</div>
               </div>
-            {% endfor %}
+
+              {% for g in grades %}
+                <div class="tr">
+                  <div class="td">{{ g.created_at|date:"d.m.Y H:i"|default:"—" }}</div>
+                  <div class="td">{{ g.student.group.code|default:"—" }}</div>
+                  <div class="td">{{ g.student.user.get_full_name|default:g.student.user.username|default:"—" }}</div>
+                  <div class="td">{{ g.subject.name|default:"—" }}</div>
+                  <div class="td"><span class="score">{{ g.value|default:"—" }}</span></div>
+                  <div class="td"><span class="muted">{{ g.note|default:"" }}</span></div>
+                </div>
+              {% endfor %}
+            {% else %}
+              <div class="tr th">
+                <div class="td">Дата</div>
+                <div class="td">Предмет</div>
+                <div class="td">Оценка</div>
+                <div class="td">Комментарий</div>
+              </div>
+
+              {% for g in grades %}
+                <div class="tr">
+                  <div class="td">{{ g.created_at|date:"d.m.Y H:i"|default:"—" }}</div>
+                  <div class="td">{{ g.subject.name|default:"—" }}</div>
+                  <div class="td"><span class="score">{{ g.value|default:"—" }}</span></div>
+                  <div class="td"><span class="muted">{{ g.note|default:"" }}</span></div>
+                </div>
+              {% endfor %}
+            {% endif %}
           </div>
         {% else %}
           <div class="empty">

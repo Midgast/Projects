@@ -1,120 +1,148 @@
 {% extends "core/dashboard_base.html" %}
 
-{% block title %}Домашние задания — College Core{% endblock %}
+{% block title %}
+  {% if mode == "staff" %}Домашние задания — College Core{% else %}Мои домашки — College Core{% endif %}
+{% endblock %}
 
 {% block topbar_left %}
-  <div class="crumbs">Домашние задания</div>
+  <div class="crumbs">{% if mode == "staff" %}Домашние задания{% else %}Домашки{% endif %}</div>
 {% endblock %}
 
 {% block content %}
 <section class="page">
   <div class="bento">
 
-    <!-- Header card -->
+    <!-- Summary -->
     <article class="card bento-big tilt" data-tilt>
       <header class="card-h">
         <div>
-          <div class="kicker">Цифровая система</div>
-          <h2 class="h2">Домашние задания</h2>
+          <div class="kicker">Задачи</div>
+          <h2 class="h2">{% if mode == "staff" %}Домашние задания{% else %}Мои домашки{% endif %}</h2>
         </div>
-        <div class="pill">
-          Выполнено: <strong style="margin-left:6px">{{ completed_count|default:0 }}</strong> /
-          {{ total_count|default:0 }}
+        <div class="pill subtle">
+          Всего: <strong style="margin-left:6px">{{ total_count|default:0 }}</strong>
         </div>
       </header>
 
       <div class="card-b">
-        <div class="split">
-          <div class="block">
-            <div class="label">Ближайший дедлайн</div>
-            <div class="big">{{ nearest_deadline|default:"—" }}</div>
+        <div class="grid2">
+          <div class="metric">
+            <div class="metric-label">Выполнено</div>
+            <div class="metric-value">{{ completed_count|default:0 }}</div>
           </div>
-
-          <div class="block">
-            <div class="label">Режим</div>
-            <div class="muted">Нажимай “Готово” — отметка сохранится без перезагрузки.</div>
+          <div class="metric">
+            <div class="metric-label">Осталось</div>
+            <div class="metric-value">{{ pending_count|default:0 }}</div>
           </div>
         </div>
 
         <div class="divider"></div>
 
-        <form method="get" class="form">
-          <select class="input" name="status">
-            <option value="" {% if not status %}selected{% endif %}>Все</option>
-            <option value="open" {% if status == "open" %}selected{% endif %}>Только невыполненные</option>
-            <option value="done" {% if status == "done" %}selected{% endif %}>Только выполненные</option>
-          </select>
-
-          <select class="input" name="sort">
-            <option value="deadline" {% if sort == "deadline" or not sort %}selected{% endif %}>Сортировать по дедлайну</option>
-            <option value="-deadline" {% if sort == "-deadline" %}selected{% endif %}>Дедлайн (сначала поздние)</option>
-            <option value="subject" {% if sort == "subject" %}selected{% endif %}>По предмету</option>
-          </select>
-
-          <button class="btn" type="submit">Применить</button>
-        </form>
+        <div class="split">
+          <div class="block">
+            <div class="label">Правило</div>
+            {% if mode == "staff" %}
+              <div class="muted">Преподаватель видит домашки по своим предметам. Директор — всё.</div>
+            {% else %}
+              <div class="muted">Отмечай выполненное — изменения сохраняются сразу.</div>
+            {% endif %}
+          </div>
+          <div class="block">
+            <div class="label">Быстрые действия</div>
+            <div class="metric-value">
+              {% if mode == "staff" %}
+                <a class="btn" href="/admin/core/homework/add/">Добавить</a>
+                <a class="btn ghost" href="/admin/core/homework/">Админка</a>
+              {% else %}
+                <a class="btn ghost" href="/schedule/">Расписание</a>
+                <a class="btn ghost" href="/grades/">Оценки</a>
+              {% endif %}
+            </div>
+          </div>
+        </div>
       </div>
     </article>
 
-    <!-- List -->
+    <!-- List/Table -->
     <article class="card bento-wide tilt" data-tilt>
       <header class="card-h">
         <div>
           <div class="kicker">Список</div>
-          <h2 class="h2">Задачи</h2>
+          <h2 class="h2">{% if mode == "staff" %}Все записи{% else %}Мои задачи{% endif %}</h2>
         </div>
-        <div class="pill subtle">Клик = мгновенно</div>
+        <div class="pill subtle">
+          Показано: {{ homeworks|length|default:0 }}
+        </div>
       </header>
 
       <div class="card-b">
         {% if homeworks %}
-          <div class="list">
-            {% for hw in homeworks %}
-              <div class="list-item {% if hw.completed %}is-done{% endif %}"
-                   data-hw-row data-completed="{% if hw.completed %}1{% else %}0{% endif %}">
-                <div class="check {% if hw.completed %}on{% endif %}">
-                  {% if hw.completed %}✓{% else %}&nbsp;{% endif %}
-                </div>
+          {% if mode == "staff" %}
+            <div class="table">
+              <div class="tr th">
+                <div class="td">Дедлайн</div>
+                <div class="td">Группа</div>
+                <div class="td">Студент</div>
+                <div class="td">Предмет</div>
+                <div class="td">Задача</div>
+                <div class="td">Статус</div>
+              </div>
 
-                <div class="list-main">
-                  <div class="list-title">{{ hw.title|default:"Задание" }}</div>
-                  <div class="list-sub">
-                    {{ hw.subject.name|default:hw.subject|default:"—" }}
-                    <span class="sep">·</span>
-                    Дедлайн: <strong>{{ hw.deadline|date:"d.m.Y"|default:"—" }}</strong>
+              {% for h in homeworks %}
+                <div class="tr">
+                  <div class="td">{{ h.deadline|date:"d.m.Y"|default:"—" }}</div>
+                  <div class="td">{{ h.student.group.code|default:"—" }}</div>
+                  <div class="td">{{ h.student.user.get_full_name|default:h.student.user.username }}</div>
+                  <div class="td">{{ h.subject.name|default:"—" }}</div>
+                  <div class="td">{{ h.title|default:h.description|default:"—" }}</div>
+                  <div class="td">
+                    {% if h.completed %}
+                      <span class="pill mini">Готово</span>
+                    {% else %}
+                      <span class="pill mini subtle">В работе</span>
+                    {% endif %}
                   </div>
                 </div>
+              {% endfor %}
+            </div>
+          {% else %}
+            <div class="hw-list">
+              {% for h in homeworks %}
+                <label class="hw-row">
+                  <input
+                    type="checkbox"
+                    class="hw-check"
+                    {% if h.completed %}checked{% endif %}
+                    data-hw-toggle
+                    data-hw-id="{{ h.id }}"
+                    {% if not allow_toggle %}disabled{% endif %}
+                  >
+                  <span class="hw-meta">
+                    <span class="hw-title">{{ h.title|default:"Задание" }}</span>
+                    <span class="hw-sub muted">
+                      {{ h.subject.name|default:"—" }}
+                      <span class="sep">·</span>
+                      дедлайн: {{ h.deadline|date:"d.m.Y"|default:"—" }}
+                    </span>
+                  </span>
+                  {% if h.completed %}
+                    <span class="pill mini">Готово</span>
+                  {% else %}
+                    <span class="pill mini subtle">В работе</span>
+                  {% endif %}
+                </label>
+              {% endfor %}
+            </div>
 
-                <div class="list-actions">
-                  <button class="btn ghost" type="button" data-hw-toggle data-id="{{ hw.id }}">
-                    {% if hw.completed %}Снять{% else %}Готово{% endif %}
-                  </button>
-                </div>
-              </div>
-            {% endfor %}
-          </div>
+            <div class="hint" style="margin-top:12px">
+              Если чекбоксы не сохраняются — проверь, что подключен <code>static/js/app.js</code> и endpoint toggle в urls.
+            </div>
+          {% endif %}
         {% else %}
           <div class="empty">
-            Домашек пока нет. Запусти <code>python manage.py seed</code> или добавь в админке.
+            Домашек пока нет. {% if mode == "staff" %}Добавь через админку.{% else %}Подожди назначения от преподавателя.{% endif %}
           </div>
         {% endif %}
-      </div>
-    </article>
-
-    <!-- Hint -->
-    <article class="card bento-small tilt" data-tilt>
-      <header class="card-h">
-        <div>
-          <div class="kicker">Подсказка</div>
-          <h2 class="h2">Как добавить</h2>
-        </div>
-      </header>
-      <div class="card-b">
-        <ol class="steps">
-          <li>Открой <span class="mono">/admin/</span></li>
-          <li>Зайди в <span class="mono">Homeworks</span></li>
-          <li>Создай задачу студенту и поставь дедлайн</li>
-        </ol>
       </div>
     </article>
 

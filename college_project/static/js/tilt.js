@@ -1,72 +1,100 @@
+// college_project/static/js/tilt.js
 (() => {
-  const MAX_TILT = 10;      // degrees
-  const SCALE = 1.02;
-  const GLARE_OPACITY = 0.22;
+  const prefersReduced = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+  if (prefersReduced) return;
 
-  function clamp(v, min, max) {
-    return Math.min(max, Math.max(min, v));
-  }
+  const MAX_TILT = 4;          // было сильно — теперь мягко
+  const SCALE = 1.02;          // лёгкий "подъём"
+  const PERSPECTIVE = 900;     // глубина
+  const GLARE_OPACITY = 0.16;  // мягкий блик
+  const EASE = 0.12;           // скорость догоняния (0.08..0.18)
 
-  function makeGlare(el) {
-    let glare = el.querySelector(".glare");
-    if (glare) return glare;
+  const cards = document.querySelectorAll("[data-tilt]");
+  if (!cards.length) return;
 
-    glare = document.createElement("div");
-    glare.className = "glare";
-    el.appendChild(glare);
-    return glare;
-  }
+  const clamp = (v, min, max) => Math.min(max, Math.max(min, v));
 
-  function onMove(e) {
-    const el = e.currentTarget;
-    const rect = el.getBoundingClientRect();
+  cards.forEach((card) => {
+    // ensure inner glare layer
+    let glare = card.querySelector(".glare");
+    if (!glare) {
+      glare = document.createElement("div");
+      glare.className = "glare";
+      card.appendChild(glare);
+    }
 
-    const x = (e.clientX - rect.left) / rect.width;   // 0..1
-    const y = (e.clientY - rect.top) / rect.height;   // 0..1
+    let rect = null;
+    let targetX = 0, targetY = 0;
+    let curX = 0, curY = 0;
+    let rafId = null;
 
-    const px = (x - 0.5) * 2; // -1..1
-    const py = (y - 0.5) * 2; // -1..1
+    const updateRect = () => { rect = card.getBoundingClientRect(); };
 
-    const rotY = clamp(px * MAX_TILT, -MAX_TILT, MAX_TILT);
-    const rotX = clamp(-py * MAX_TILT, -MAX_TILT, MAX_TILT);
+    const render = () => {
+      // smooth approach
+      curX += (targetX - curX) * EASE;
+      curY += (targetY - curY) * EASE;
 
-    el.style.transform = `perspective(900px) rotateX(${rotX}deg) rotateY(${rotY}deg) scale(${SCALE})`;
-    el.style.boxShadow = "0 30px 70px rgba(0,0,0,.22)";
+      const rotateX = curY * MAX_TILT;
+      const rotateY = curX * MAX_TILT;
 
-    const glare = makeGlare(el);
-    const gx = x * 100;
-    const gy = y * 100;
+      card.style.transform =
+        `perspective(${PERSPECTIVE}px) rotateX(${rotateX}deg) rotateY(${rotateY}deg) scale(${SCALE})`;
 
-    glare.style.opacity = String(GLARE_OPACITY);
-    glare.style.background = `radial-gradient(circle at ${gx}% ${gy}%, rgba(255,255,255,.55), rgba(255,255,255,0) 55%)`;
-  }
+      // glare position and intensity
+      const gx = (curX * 0.5 + 0.5) * 100; // 0..100
+      const gy = (-curY * 0.5 + 0.5) * 100;
 
-  function onEnter(e) {
-    const el = e.currentTarget;
-    el.style.willChange = "transform";
-    el.classList.add("tilt-on");
-    makeGlare(el);
-  }
+      glare.style.opacity = String(GLARE_OPACITY);
+      glare.style.background =
+        `radial-gradient(circle at ${gx}% ${gy}%, rgba(255,255,255,0.55), rgba(255,255,255,0) 55%)`;
 
-  function onLeave(e) {
-    const el = e.currentTarget;
-    el.style.transform = "";
-    el.style.boxShadow = "";
-    el.style.willChange = "";
-    el.classList.remove("tilt-on");
+      rafId = requestAnimationFrame(render);
+    };
 
-    const glare = el.querySelector(".glare");
-    if (glare) glare.style.opacity = "0";
-  }
+    const stop = () => {
+      if (rafId) cancelAnimationFrame(rafId);
+      rafId = null;
 
-  function init() {
-    const cards = document.querySelectorAll("[data-tilt], .tilt");
-    cards.forEach((el) => {
-      el.addEventListener("mouseenter", onEnter);
-      el.addEventListener("mousemove", onMove);
-      el.addEventListener("mouseleave", onLeave);
-    });
-  }
+      targetX = 0; targetY = 0;
+      curX = 0; curY = 0;
 
-  document.addEventListener("DOMContentLoaded", init);
+      card.style.transform = "";
+      glare.style.opacity = "0";
+      glare.style.background = "";
+    };
+
+    const onEnter = () => {
+      updateRect();
+      card.style.willChange = "transform";
+      glare.style.opacity = "0";
+      if (!rafId) rafId = requestAnimationFrame(render);
+    };
+
+    const onMove = (e) => {
+      if (!rect) updateRect();
+      const x = (e.clientX - rect.left) / rect.width;   // 0..1
+      const y = (e.clientY - rect.top) / rect.height;  // 0..1
+
+      // map to -1..1
+      const nx = clamp((x - 0.5) * 2, -1, 1);
+      const ny = clamp((y - 0.5) * 2, -1, 1);
+
+      targetX = nx;
+      targetY = ny;
+    };
+
+    const onLeave = () => {
+      card.style.willChange = "";
+      stop();
+    };
+
+    // keep rect fresh on resize/scroll
+    window.addEventListener("resize", updateRect, { passive: true });
+    window.addEventListener("scroll", updateRect, { passive: true });
+
+    card.addEventListener("mouseenter", onEnter);
+    card.addEventListener("mousemove", onMove);
+    card.addEventListener("mouseleave", onLeave);
+  });
 })();

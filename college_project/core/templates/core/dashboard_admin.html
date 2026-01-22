@@ -1,126 +1,175 @@
 {% extends "core/dashboard_base.html" %}
-{% block title %}Director Dashboard • College Core{% endblock %}
+
+{% block title %}Директор — College Core{% endblock %}
 
 {% block topbar_left %}
   <div class="crumbs">Директор</div>
 {% endblock %}
 
 {% block content %}
+<section class="page">
+  <div class="bento">
 
-<section class="page-head">
-  <div>
-    <h1 class="page-title">Панель директора</h1>
-    <p class="page-subtitle">Сводка по колледжу: люди, показатели, контроль.</p>
-  </div>
-  <a class="btn ghost" href="/admin/">Админка</a>
-</section>
+    <!-- System overview -->
+    <article class="card bento-big tilt" data-tilt>
+      <header class="card-h">
+        <div>
+          <div class="kicker">Система</div>
+          <h2 class="h2">Обзор колледжа</h2>
+        </div>
+        <div class="pill subtle">Администрирование</div>
+      </header>
 
-<section class="bento">
-  <!-- Stats Big -->
-  <article class="card big tilt" data-tilt>
-    <div class="card-head">
-      <h2 class="card-title">Сводка</h2>
-      <span class="pill">Live</span>
-    </div>
-
-    <div class="kv">
-      <div class="kv-row">
-        <span class="kv-k">Студенты</span>
-        <span class="kv-v">{{ stats.students }}</span>
-      </div>
-      <div class="kv-row">
-        <span class="kv-k">Преподаватели</span>
-        <span class="kv-v">{{ stats.teachers }}</span>
-      </div>
-      <div class="kv-row">
-        <span class="kv-k">Средний GPA</span>
-        <span class="kv-v">{{ stats.avg_gpa|floatformat:2 }}</span>
-      </div>
-      <div class="kv-row">
-        <span class="kv-k">Средняя посещаемость</span>
-        <span class="kv-v">{{ stats.avg_attendance }}</span>
-      </div>
-      <div class="kv-row">
-        <span class="kv-k">Открытых замечаний</span>
-        <span class="kv-v">{{ stats.open_remarks }}</span>
-      </div>
-    </div>
-
-    <div class="card-actions">
-      <a class="btn" href="/rating/">Рейтинг</a>
-      <a class="btn ghost" href="/remarks/">Замечания</a>
-      <a class="btn ghost" href="/schedule/">Расписание</a>
-    </div>
-  </article>
-
-  <!-- Quick tiles -->
-  <article class="card tilt" data-tilt style="grid-column: span 6;">
-    <div class="card-head">
-      <h2 class="card-title">Управление</h2>
-      <span class="pill">CRUD в админке</span>
-    </div>
-
-    <div class="list">
-      <div class="list-item">
-        <div class="list-left">
-          <div class="dot"></div>
-          <div>
-            <div class="list-title">Новости</div>
-            <div class="list-sub muted">Добавление/редактирование с картинками</div>
+      <div class="card-b">
+        <div class="grid2">
+          <div class="metric">
+            <div class="metric-label">Студентов</div>
+            <div class="metric-value">{{ stats.students|default:"—" }}</div>
+          </div>
+          <div class="metric">
+            <div class="metric-label">Преподавателей</div>
+            <div class="metric-value">{{ stats.teachers|default:"—" }}</div>
           </div>
         </div>
-        <a class="btn ghost" href="/admin/core/news/">Открыть</a>
-      </div>
 
-      <div class="list-item">
-        <div class="list-left">
-          <div class="dot"></div>
-          <div>
-            <div class="list-title">Студенты</div>
-            <div class="list-sub muted">Группы, GPA, посещаемость</div>
+        <div class="divider"></div>
+
+        <div class="grid2">
+          <div class="metric">
+            <div class="metric-label">Открытых замечаний</div>
+            <div class="metric-value">{{ stats.open_remarks|default:"—" }}</div>
+          </div>
+          <div class="metric">
+            <div class="metric-label">Быстрые действия</div>
+            <div class="metric-value">
+              <a class="btn" href="/admin/">Админка</a>
+              <a class="btn ghost" href="/remarks/">Замечания</a>
+            </div>
           </div>
         </div>
-        <a class="btn ghost" href="/admin/core/student/">Открыть</a>
-      </div>
 
-      <div class="list-item">
-        <div class="list-left">
-          <div class="dot"></div>
-          <div>
-            <div class="list-title">Расписание</div>
-            <div class="list-sub muted">ScheduleEntry</div>
-          </div>
+        <div class="hint">
+          Директор управляет данными через админку. В интерфейсе — только важные сводки и контрольные страницы.
         </div>
-        <a class="btn ghost" href="/admin/core/scheduleentry/">Открыть</a>
       </div>
-    </div>
-  </article>
+    </article>
 
-  <!-- News -->
-  <article class="card wide tilt" data-tilt>
-    <div class="card-head">
-      <h2 class="card-title">Новости</h2>
-      <a class="btn ghost" href="/news/">Все</a>
-    </div>
+    <!-- Teacher mode (optional) -->
+    {% if teacher_mode %}
+    <article class="card bento-tall tilt" data-tilt>
+      <header class="card-h">
+        <div>
+          <div class="kicker">Роль</div>
+          <h2 class="h2">Преподаватель</h2>
+        </div>
+        <div class="pill">Teacher-mode</div>
+      </header>
 
-    <div class="news-grid">
-      {% for n in news %}
-        <article class="news-card" style="display:grid;">
-          <div class="news-img">
-            {% if n.image %}
-              <img src="{{ n.image.url }}" alt="{{ n.title }}">
+      <div class="card-b">
+        <div class="metric">
+          <div class="metric-label">Мои открытые замечания</div>
+          <div class="metric-value">{{ my_open_remarks|default:"0" }}</div>
+        </div>
+
+        <div class="divider"></div>
+
+        <div class="metric">
+          <div class="metric-label">Следующая пара</div>
+          <div class="metric-value">
+            {% if next_lesson %}
+              <div style="font-weight:800">{{ next_lesson.subject.name }}</div>
+              <div class="muted" style="margin-top:6px">
+                {{ next_lesson.group.code }} · {{ next_lesson.time_start }}—{{ next_lesson.time_end }} · {{ next_lesson.location }}
+              </div>
+              <div class="pill mini subtle" style="margin-top:10px" data-countdown data-target-ms="{{ timestamp_ms }}">
+                <span class="muted">до начала:</span> <strong data-countdown-text>—</strong>
+              </div>
+            {% else %}
+              <span class="muted">Пары не найдены</span>
             {% endif %}
           </div>
-          <div class="news-body">
-            <div class="news-title">{{ n.title }}</div>
-            <div class="news-sub muted">{{ n.created_at|date:"d M Y" }}</div>
-          </div>
-        </article>
-      {% empty %}
-        <p class="muted">Новостей нет.</p>
-      {% endfor %}
-    </div>
-  </article>
-</section>
+        </div>
 
+        <div class="divider"></div>
+
+        <div class="metric">
+          <div class="metric-label">Мои группы</div>
+          <div class="metric-value">
+            {% if groups %}
+              <div class="chips">
+                {% for g in groups %}
+                  <span class="chip">{{ g.code }}</span>
+                {% endfor %}
+              </div>
+            {% else %}
+              <span class="muted">Нет закреплённых групп</span>
+            {% endif %}
+          </div>
+        </div>
+
+        <div class="divider"></div>
+
+        <div class="metric">
+          <div class="metric-label">Быстрые ссылки</div>
+          <div class="metric-value">
+            <a class="btn ghost" href="/schedule/">Расписание</a>
+            <a class="btn ghost" href="/grades/">Журнал</a>
+            <a class="btn ghost" href="/homeworks/">Домашки</a>
+          </div>
+        </div>
+      </div>
+    </article>
+    {% else %}
+    <article class="card bento-small tilt" data-tilt>
+      <header class="card-h">
+        <div>
+          <div class="kicker">Роль</div>
+          <h2 class="h2">Преподавание</h2>
+        </div>
+      </header>
+      <div class="card-b">
+        <div class="empty">
+          У этого директора нет профиля преподавателя. Если нужно — создай Teacher-профиль на этого пользователя в админке.
+        </div>
+      </div>
+    </article>
+    {% endif %}
+
+    <!-- News -->
+    <article class="card bento-wide tilt" data-tilt>
+      <header class="card-h">
+        <div>
+          <div class="kicker">Официально</div>
+          <h2 class="h2">Новости</h2>
+        </div>
+        <a class="btn ghost" href="/news/">Все новости</a>
+      </header>
+
+      <div class="card-b">
+        {% if news %}
+          <div class="news-strip">
+            {% for n in news %}
+              <a class="news-card" href="/news/">
+                <div class="news-img">
+                  {% if n.image %}
+                    <img src="{{ n.image.url }}" alt="">
+                  {% else %}
+                    <div class="news-ph"></div>
+                  {% endif %}
+                </div>
+                <div class="news-body">
+                  <div class="news-title">{{ n.title }}</div>
+                  <div class="news-sub muted">{{ n.text|truncatechars:120 }}</div>
+                </div>
+              </a>
+            {% endfor %}
+          </div>
+        {% else %}
+          <div class="empty">Новостей пока нет.</div>
+        {% endif %}
+      </div>
+    </article>
+
+  </div>
+</section>
 {% endblock %}

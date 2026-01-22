@@ -1,143 +1,165 @@
 {% extends "core/dashboard_base.html" %}
-{% block title %}Teacher Dashboard • College Core{% endblock %}
+
+{% block title %}Преподаватель — College Core{% endblock %}
 
 {% block topbar_left %}
   <div class="crumbs">Преподаватель</div>
 {% endblock %}
 
 {% block content %}
+<section class="page">
+  <div class="bento">
 
-<section class="page-head">
-  <div>
-    <h1 class="page-title">Привет, {{ request.user.first_name|default:request.user.username }} 👋</h1>
-    <p class="page-subtitle">Расписание, группы, контроль замечаний.</p>
-  </div>
-  <div class="pill">Открытых замечаний: <b>{{ open_remarks }}</b></div>
-</section>
+    <!-- Next lesson -->
+    <article class="card bento-big tilt" data-tilt>
+      <header class="card-h">
+        <div>
+          <div class="kicker">Работа</div>
+          <h2 class="h2">Следующая пара</h2>
+        </div>
+        <div class="pill subtle">Расписание</div>
+      </header>
 
-<section class="bento">
-  <!-- Next lesson -->
-  <article class="card big tilt" data-tilt>
-    <div class="card-head">
-      <h2 class="card-title">Следующая пара</h2>
-      {% if next_lesson %}
-        <span class="pill">{{ next_lesson.group.code }} • {{ next_lesson.location }}</span>
-      {% else %}
-        <span class="pill">Нет</span>
-      {% endif %}
-    </div>
+      <div class="card-b">
+        {% if next_lesson %}
+          <div class="split">
+            <div class="block">
+              <div class="label">Предмет</div>
+              <div class="big">{{ next_lesson.subject.name }}</div>
+              <div class="muted" style="margin-top:8px">
+                Группа: <strong>{{ next_lesson.group.code }}</strong>
+                <span class="sep">·</span>
+                Кабинет: <strong>{{ next_lesson.location }}</strong>
+              </div>
+            </div>
 
-    {% if next_lesson %}
-      <div class="list">
-        <div class="list-item">
-          <div class="list-left" style="min-width:0;">
-            <div class="dot"></div>
-            <div style="min-width:0;">
-              <div class="list-title">{{ next_lesson.subject.name }}</div>
-              <div class="list-sub">
-                {{ next_lesson.time_start }} — {{ next_lesson.time_end }}
-                • {{ next_lesson_start|date:"D, d M" }}
+            <div class="block">
+              <div class="label">Время</div>
+              <div class="big">{{ next_lesson.time_start }} — {{ next_lesson.time_end }}</div>
+              <div class="pill mini subtle" style="margin-top:10px" data-countdown data-target-ms="{{ timestamp_ms }}">
+                <span class="muted">до начала:</span> <strong data-countdown-text>—</strong>
               </div>
             </div>
           </div>
-          <span class="tag good">Скоро</span>
-        </div>
 
-        <div class="list-item" data-countdown data-target-ms="{{ timestamp_ms }}">
-          <div class="list-left">
-            <div class="dot"></div>
-            <div>
-              <div class="list-title">До начала</div>
-              <div class="list-sub muted">Обновляется каждую секунду</div>
+          <div class="divider"></div>
+
+          <div class="metric">
+            <div class="metric-label">Быстрые действия</div>
+            <div class="metric-value">
+              <a class="btn" href="/schedule/">Открыть расписание</a>
+              <a class="btn ghost" href="/grades/">Журнал оценок</a>
+              <a class="btn ghost" href="/remarks/">Замечания</a>
             </div>
           </div>
-          <div class="list-meta" data-countdown-text>00:00:00</div>
+        {% else %}
+          <div class="empty">
+            На ближайшее время пар нет. Проверь ScheduleEntry в админке.
+          </div>
+          <div style="margin-top:12px">
+            <a class="btn ghost" href="/admin/core/scheduleentry/">Открыть ScheduleEntry</a>
+          </div>
+        {% endif %}
+      </div>
+    </article>
+
+    <!-- Groups -->
+    <article class="card bento-tall tilt" data-tilt>
+      <header class="card-h">
+        <div>
+          <div class="kicker">Классы</div>
+          <h2 class="h2">Мои группы</h2>
+        </div>
+        <div class="pill">{{ groups|length|default:0 }}</div>
+      </header>
+
+      <div class="card-b">
+        {% if groups %}
+          <div class="chips">
+            {% for g in groups %}
+              <span class="chip">{{ g.code }}</span>
+            {% endfor %}
+          </div>
+
+          <div class="divider"></div>
+
+          <div class="hint">
+            Для управления расписанием, оценками и домашками — используй админку или соответствующие страницы.
+          </div>
+
+          <div style="margin-top:12px">
+            <a class="btn ghost" href="/admin/">Админка</a>
+            <a class="btn ghost" href="/homeworks/">Домашки</a>
+          </div>
+        {% else %}
+          <div class="empty">
+            У преподавателя нет групп. Назначь пары через ScheduleEntry.
+          </div>
+        {% endif %}
+      </div>
+    </article>
+
+    <!-- Remarks / status -->
+    <article class="card bento-small tilt" data-tilt>
+      <header class="card-h">
+        <div>
+          <div class="kicker">Контроль</div>
+          <h2 class="h2">Замечания</h2>
+        </div>
+      </header>
+      <div class="card-b">
+        <div class="metric">
+          <div class="metric-label">Открытых (моих)</div>
+          <div class="metric-value">{{ open_remarks|default:"0" }}</div>
+        </div>
+
+        <div class="divider"></div>
+
+        <div class="metric">
+          <div class="metric-label">Перейти</div>
+          <div class="metric-value">
+            <a class="btn" href="/remarks/">Открыть</a>
+            <a class="btn ghost" href="/admin/core/remark/">Админка</a>
+          </div>
         </div>
       </div>
-    {% else %}
-      <p class="muted">Ближайших пар нет.</p>
-    {% endif %}
+    </article>
 
-    <div class="card-actions">
-      <a class="btn ghost" href="/schedule/">Открыть расписание</a>
-      <a class="btn ghost" href="/remarks/">Замечания</a>
-    </div>
-  </article>
-
-  <!-- Groups -->
-  <article class="card tall tilt" data-tilt>
-    <div class="card-head">
-      <h2 class="card-title">Мои группы</h2>
-      <span class="pill">{{ groups|length }}</span>
-    </div>
-
-    <div class="list">
-      {% for g in groups %}
-        <div class="list-item">
-          <div class="list-left">
-            <div class="dot"></div>
-            <div>
-              <div class="list-title">{{ g.code }}</div>
-              <div class="list-sub muted">Группа</div>
-            </div>
-          </div>
-          <span class="pill mini">OK</span>
+    <!-- News -->
+    <article class="card bento-wide tilt" data-tilt>
+      <header class="card-h">
+        <div>
+          <div class="kicker">Инфо</div>
+          <h2 class="h2">Новости</h2>
         </div>
-      {% empty %}
-        <p class="muted">Групп нет.</p>
-      {% endfor %}
-    </div>
-  </article>
+        <a class="btn ghost" href="/news/">Все</a>
+      </header>
 
-  <!-- Quick stats -->
-  <article class="card tilt" data-tilt style="grid-column: span 6;">
-    <div class="card-head">
-      <h2 class="card-title">Контроль</h2>
-      <span class="pill">Read-only</span>
-    </div>
-
-    <div class="kv">
-      <div class="kv-row">
-        <span class="kv-k">Открытых замечаний</span>
-        <span class="kv-v">{{ open_remarks }}</span>
-      </div>
-      <div class="kv-row">
-        <span class="kv-k">Новости</span>
-        <span class="kv-v">{{ news|length }}</span>
-      </div>
-    </div>
-
-    <div class="card-actions">
-      <a class="btn" href="/news/">Новости</a>
-      <a class="btn ghost" href="/homeworks/">Домашки</a>
-    </div>
-  </article>
-
-  <!-- News -->
-  <article class="card wide tilt" data-tilt>
-    <div class="card-head">
-      <h2 class="card-title">Новости</h2>
-      <a class="btn ghost" href="/news/">Все</a>
-    </div>
-
-    <div class="news-grid">
-      {% for n in news %}
-        <article class="news-card" style="display:grid;">
-          <div class="news-img">
-            {% if n.image %}
-              <img src="{{ n.image.url }}" alt="{{ n.title }}">
-            {% endif %}
+      <div class="card-b">
+        {% if news %}
+          <div class="news-strip">
+            {% for n in news %}
+              <a class="news-card" href="/news/">
+                <div class="news-img">
+                  {% if n.image %}
+                    <img src="{{ n.image.url }}" alt="">
+                  {% else %}
+                    <div class="news-ph"></div>
+                  {% endif %}
+                </div>
+                <div class="news-body">
+                  <div class="news-title">{{ n.title }}</div>
+                  <div class="news-sub muted">{{ n.text|truncatechars:120 }}</div>
+                </div>
+              </a>
+            {% endfor %}
           </div>
-          <div class="news-body">
-            <div class="news-title">{{ n.title }}</div>
-            <div class="news-sub muted">{{ n.created_at|date:"d M Y" }}</div>
-          </div>
-        </article>
-      {% empty %}
-        <p class="muted">Новостей нет.</p>
-      {% endfor %}
-    </div>
-  </article>
+        {% else %}
+          <div class="empty">Новостей пока нет.</div>
+        {% endif %}
+      </div>
+    </article>
+
+  </div>
 </section>
-
 {% endblock %}
