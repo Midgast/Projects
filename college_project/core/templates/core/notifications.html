@@ -1,0 +1,64 @@
+{% extends "core/dashboard_base.html" %}
+{% block title %}Уведомления • College Core{% endblock %}
+
+{% block topbar_left %}
+  <div class="crumbs">Уведомления</div>
+{% endblock %}
+
+{% block content %}
+
+<section class="page-head">
+  <div>
+    <h1 class="page-title">Уведомления</h1>
+    <p class="page-subtitle">Оценки, домашки, новости и замечания — всё здесь.</p>
+  </div>
+  <div class="pill">Непрочитано: <b>{{ unread_notifications_count }}</b></div>
+</section>
+
+<section class="bento">
+  <article class="card wide tilt" data-tilt data-notifications-page data-auto-read="1">
+    <div class="card-head">
+      <h2 class="card-title">Лента</h2>
+      <span class="pill">Авто-пометка при открытии</span>
+    </div>
+
+    <div class="list">
+      {% for n in notifications %}
+        <div class="list-item {% if n.is_read %}is-read{% endif %}"
+             data-notif-row
+             data-id="{{ n.id }}"
+             data-read="{% if n.is_read %}1{% else %}0{% endif %}">
+          <div class="list-left" style="min-width:0;">
+            <div class="check {% if not n.is_read %}on{% endif %}">
+              {% if n.is_read %}✓{% else %}&nbsp;{% endif %}
+            </div>
+            <div style="min-width:0;">
+              <div class="list-title">{{ n.title }}</div>
+              <div class="list-sub">
+                {{ n.message }}
+                {% if n.link %}
+                  • <a href="{{ n.link }}" class="muted">открыть</a>
+                {% endif %}
+              </div>
+            </div>
+          </div>
+
+          <div style="display:flex; align-items:center; gap:10px;">
+            <div class="list-meta">{{ n.created_at|date:"d M, H:i" }}</div>
+            {% if not n.is_read %}
+              <button class="btn ghost" data-notif-read data-id="{{ n.id }}" style="padding: 8px 10px; border-radius: 14px;">
+                Прочитано
+              </button>
+            {% else %}
+              <span class="pill mini">OK</span>
+            {% endif %}
+          </div>
+        </div>
+      {% empty %}
+        <p class="muted">Уведомлений нет.</p>
+      {% endfor %}
+    </div>
+  </article>
+</section>
+
+{% endblock %}

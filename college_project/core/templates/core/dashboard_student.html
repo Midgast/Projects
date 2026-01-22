@@ -1,0 +1,151 @@
+{% extends "core/dashboard_base.html" %}
+{% block title %}Student Dashboard • College Core{% endblock %}
+
+{% block topbar_left %}
+  <div class="crumbs">Студент • {{ student.group.code }}</div>
+{% endblock %}
+
+{% block content %}
+
+<section class="page-head">
+  <div>
+    <h1 class="page-title">Привет, {{ request.user.first_name|default:request.user.username }} 👋</h1>
+    <p class="page-subtitle">Твой день в одном экране. Стекло, скорость, фокус.</p>
+  </div>
+  <div class="pill">Место в группе: <b>{{ group_place|default:"—" }}</b> / {{ group_total|default:"—" }}</div>
+</section>
+
+<section class="bento">
+  <!-- Widget 1 (Big): My Rating -->
+  <article class="card big tilt" data-tilt>
+    <div class="card-head">
+      <h2 class="card-title">Мой рейтинг</h2>
+      <span class="pill">GPA {{ student.gpa }} • {{ stats.attendance }}</span>
+    </div>
+
+    <div class="rating-wrap">
+      <div class="ring" style="--p: {{ student.attendance }};">
+        <div class="ring-center">
+          <div class="ring-big">{{ student.gpa }}</div>
+          <div class="ring-sub">Средний балл</div>
+        </div>
+      </div>
+
+      <div class="kv" style="margin-top: 12px;">
+        <div class="kv-row">
+          <span class="kv-k">Посещаемость</span>
+          <span class="kv-v">{{ stats.attendance }}</span>
+        </div>
+        <div class="kv-row">
+          <span class="kv-k">Средняя оценка</span>
+          <span class="kv-v">{{ stats.avg_grade|floatformat:1 }}</span>
+        </div>
+      </div>
+    </div>
+  </article>
+
+  <!-- Widget 2 (Medium): Next lesson -->
+  <article class="card tilt" data-tilt style="grid-column: span 6;">
+    <div class="card-head">
+      <h2 class="card-title">Следующая пара</h2>
+      {% if next_lesson %}
+        <span class="pill">{{ next_lesson.location }}</span>
+      {% else %}
+        <span class="pill">Нет</span>
+      {% endif %}
+    </div>
+
+    {% if next_lesson %}
+      <div class="next">
+        <div class="next-main">
+          <div class="next-title">{{ next_lesson.subject.name }}</div>
+          <div class="next-sub">
+            Преподаватель: {{ next_lesson.teacher.user.get_full_name|default:next_lesson.teacher.user.username }}
+          </div>
+        </div>
+
+        <div class="list-item" style="margin-top: 12px;">
+          <div class="list-left">
+            <div class="dot"></div>
+            <div>
+              <div class="list-title">{{ next_lesson_start|date:"D, d M" }}</div>
+              <div class="list-sub">{{ next_lesson.time_start }} — {{ next_lesson.time_end }}</div>
+            </div>
+          </div>
+          <div class="tag good">Скоро</div>
+        </div>
+
+        <div class="list-item" style="margin-top: 10px;" data-countdown data-target-ms="{{ timestamp_ms }}">
+          <div class="list-left">
+            <div class="dot"></div>
+            <div>
+              <div class="list-title">До начала</div>
+              <div class="list-sub muted">Обновляется каждую секунду</div>
+            </div>
+          </div>
+          <div class="list-meta" data-countdown-text>00:00:00</div>
+        </div>
+      </div>
+    {% else %}
+      <p class="muted">На ближайшее время пар нет.</p>
+    {% endif %}
+  </article>
+
+  <!-- Widget 3 (Tall): Homeworks -->
+  <article class="card tall tilt" data-tilt>
+    <div class="card-head">
+      <h2 class="card-title">Домашние задания</h2>
+      <span class="pill">Тапни — отметить</span>
+    </div>
+
+    <div class="list">
+      {% for hw in homeworks %}
+        <div class="list-item" data-hw-row data-id="{{ hw.id }}" data-completed="{% if hw.completed %}1{% else %}0{% endif %}">
+          <div class="list-left" style="min-width:0;">
+            <div class="check {% if hw.completed %}on{% endif %}">
+              {% if hw.completed %}✓{% else %}&nbsp;{% endif %}
+            </div>
+            <div style="min-width:0;">
+              <div class="list-title">{{ hw.title }}</div>
+              <div class="list-sub">{{ hw.subject.name }} • дедлайн {{ hw.deadline|date:"d M" }}</div>
+            </div>
+          </div>
+
+          <button class="btn ghost" data-hw-toggle data-id="{{ hw.id }}" style="padding: 8px 10px; border-radius: 14px;">
+            {% if hw.completed %}Снять{% else %}Готово{% endif %}
+          </button>
+        </div>
+      {% empty %}
+        <p class="muted">Домашек нет. Красота.</p>
+      {% endfor %}
+    </div>
+  </article>
+
+  <!-- Widget 4 (Wide): News -->
+  <article class="card wide tilt" data-tilt>
+    <div class="card-head">
+      <h2 class="card-title">Новости</h2>
+      <a class="btn ghost" href="/news/">Все новости</a>
+    </div>
+
+    <div class="news-grid">
+      {% for n in news %}
+        <a class="news-card" href="/news/" aria-label="{{ n.title }}">
+          <div class="news-img">
+            {% if n.image %}
+              <img src="{{ n.image.url }}" alt="{{ n.title }}">
+            {% endif %}
+          </div>
+          <div class="news-body">
+            <div class="news-title">{{ n.title }}</div>
+            <div class="news-sub muted">{{ n.created_at|date:"d M Y" }}</div>
+          </div>
+        </a>
+      {% empty %}
+        <p class="muted">Новостей пока нет.</p>
+      {% endfor %}
+    </div>
+  </article>
+</section>
+
+{% endblock %}

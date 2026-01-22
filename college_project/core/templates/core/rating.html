@@ -1,0 +1,141 @@
+{% extends "core/dashboard_base.html" %}
+
+{% block title %}Рейтинг — College Core{% endblock %}
+
+{% block topbar_left %}
+  <div class="crumbs">Рейтинг</div>
+{% endblock %}
+
+{% block content %}
+<section class="page">
+  <div class="bento">
+
+    <!-- Top 3 -->
+    <article class="card bento-big tilt" data-tilt>
+      <header class="card-h">
+        <div>
+          <div class="kicker">Онлайн</div>
+          <h2 class="h2">Рейтинг студентов</h2>
+        </div>
+        <div class="pill subtle">
+          {% if request.user.student %}
+            Группа: {{ request.user.student.group.name|default:request.user.student.group }}
+          {% else %}
+            Все группы
+          {% endif %}
+        </div>
+      </header>
+
+      <div class="card-b">
+        {% if top3 %}
+          <div class="top3">
+            {% for s in top3 %}
+              <div class="podium">
+                <div class="podium-head">
+                  <div class="avatar sm">
+                    {{ s.user.first_name|default:s.user.username|slice:":1" }}
+                  </div>
+                  <div class="podium-meta">
+                    <div class="podium-name">
+                      {{ s.user.first_name|default:s.user.username }} {{ s.user.last_name|default:"" }}
+                    </div>
+                    <div class="podium-sub muted">
+                      {{ s.group.name|default:s.group }} · GPA {{ s.gpa|default:"—" }}
+                    </div>
+                  </div>
+                </div>
+
+                <div class="podium-score">
+                  <span class="score">{{ s.gpa|default:"—" }}</span>
+                  <span class="muted" style="margin-left:8px">балл</span>
+                </div>
+              </div>
+            {% endfor %}
+          </div>
+        {% else %}
+          <div class="empty">
+            Рейтинг пока пустой. Запусти <code>python manage.py seed</code> или добавь студентов.
+          </div>
+        {% endif %}
+
+        <div class="divider"></div>
+
+        <div class="hint">
+          Рейтинг сортируется по GPA, затем по посещаемости.
+        </div>
+      </div>
+    </article>
+
+    <!-- Filter -->
+    <article class="card bento-small tilt" data-tilt>
+      <header class="card-h">
+        <div>
+          <div class="kicker">Фильтр</div>
+          <h2 class="h2">Группа</h2>
+        </div>
+      </header>
+      <div class="card-b">
+        <form method="get" class="form">
+          <select class="input" name="group">
+            <option value="">Все группы</option>
+            {% for g in groups %}
+              <option value="{{ g.id }}" {% if selected_group_id == g.id %}selected{% endif %}>
+                {{ g.name }}
+              </option>
+            {% endfor %}
+          </select>
+          <button class="btn" type="submit">Применить</button>
+        </form>
+
+        <div class="hint">
+          Для студентов по умолчанию показывается их группа.
+        </div>
+      </div>
+    </article>
+
+    <!-- Table -->
+    <article class="card bento-wide tilt" data-tilt>
+      <header class="card-h">
+        <div>
+          <div class="kicker">Таблица</div>
+          <h2 class="h2">Список</h2>
+        </div>
+        <div class="pill subtle">
+          {{ students|length|default:0 }} студентов
+        </div>
+      </header>
+
+      <div class="card-b">
+        {% if students %}
+          <div class="table">
+            <div class="tr th">
+              <div class="td">#</div>
+              <div class="td">Студент</div>
+              <div class="td">Группа</div>
+              <div class="td">GPA</div>
+              <div class="td">Посещаемость</div>
+            </div>
+
+            {% for s in students %}
+              <div class="tr {% if request.user.student and s.id == request.user.student.id %}active-row{% endif %}">
+                <div class="td">{{ forloop.counter }}</div>
+                <div class="td">
+                  {{ s.user.first_name|default:s.user.username }} {{ s.user.last_name|default:"" }}
+                </div>
+                <div class="td">{{ s.group.name|default:s.group }}</div>
+                <div class="td"><span class="score">{{ s.gpa|default:"—" }}</span></div>
+                <div class="td">{{ s.attendance|default:"—" }}{% if s.attendance and s.attendance|add:0 %}%{% endif %}</div>
+              </div>
+            {% endfor %}
+          </div>
+        {% else %}
+          <div class="empty">
+            Нет студентов для отображения.
+          </div>
+        {% endif %}
+      </div>
+    </article>
+
+  </div>
+</section>
+{% endblock %}

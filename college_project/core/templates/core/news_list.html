@@ -1,0 +1,50 @@
+{% extends "core/dashboard_base.html" %}
+{% block title %}Новости • College Core{% endblock %}
+
+{% block topbar_left %}
+  <div class="crumbs">Новости</div>
+{% endblock %}
+
+{% block content %}
+
+<section class="page-head">
+  <div>
+    <h1 class="page-title">Новости</h1>
+    <p class="page-subtitle">Объявления колледжа, события, важные сообщения.</p>
+  </div>
+  <a class="btn ghost" href="/dashboard/">Назад</a>
+</section>
+
+<section class="bento">
+  <article class="card wide tilt" data-tilt>
+    <div class="card-head">
+      <h2 class="card-title">Лента</h2>
+      <span class="pill">Всего: {{ news_list|length }}</span>
+    </div>
+
+    <div class="news-grid">
+      {% for n in news_list %}
+        <article class="news-card" style="display:grid;">
+          <div class="news-img">
+            {% if n.image %}
+              <img src="{{ n.image.url }}" alt="{{ n.title }}">
+            {% endif %}
+          </div>
+          <div class="news-body">
+            <div class="news-title">{{ n.title }}</div>
+            <div class="news-sub muted">{{ n.created_at|date:"d M Y, H:i" }}</div>
+            {% if n.content %}
+              <div class="news-sub" style="margin-top:10px; color: var(--muted); line-height: 1.35;">
+                {{ n.content|truncatechars:140 }}
+              </div>
+            {% endif %}
+          </div>
+        </article>
+      {% empty %}
+        <p class="muted">Новостей пока нет. Добавь в админке.</p>
+      {% endfor %}
+    </div>
+  </article>
+</section>
+
+{% endblock %}

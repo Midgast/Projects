@@ -1,0 +1,75 @@
+{% extends "core/dashboard_base.html" %}
+{% block title %}Настройки • College Core{% endblock %}
+
+{% block topbar_left %}
+  <div class="crumbs">Настройки</div>
+{% endblock %}
+
+{% block content %}
+
+<section class="page-head">
+  <div>
+    <h1 class="page-title">Настройки</h1>
+    <p class="page-subtitle">Профиль и параметры. Редактирование добавим позже.</p>
+  </div>
+  <a class="btn ghost" href="/dashboard/">Назад</a>
+</section>
+
+<section class="bento">
+  <article class="card big tilt" data-tilt>
+    <div class="card-head">
+      <h2 class="card-title">Профиль</h2>
+      <span class="pill">Read-only</span>
+    </div>
+
+    <div class="kv">
+      <div class="kv-row">
+        <span class="kv-k">Логин</span>
+        <span class="kv-v">{{ request.user.username }}</span>
+      </div>
+      <div class="kv-row">
+        <span class="kv-k">Имя</span>
+        <span class="kv-v">{{ request.user.first_name|default:"—" }}</span>
+      </div>
+      <div class="kv-row">
+        <span class="kv-k">Фамилия</span>
+        <span class="kv-v">{{ request.user.last_name|default:"—" }}</span>
+      </div>
+      <div class="kv-row">
+        <span class="kv-k">Email</span>
+        <span class="kv-v">{{ request.user.email|default:"—" }}</span>
+      </div>
+    </div>
+
+    <hr class="hr">
+
+    <div class="card-actions">
+      <a class="btn ghost" href="/logout/">Выйти</a>
+    </div>
+  </article>
+
+  <article class="card tilt" data-tilt style="grid-column: span 6;">
+    <div class="card-head">
+      <h2 class="card-title">Интерфейс</h2>
+      <span class="pill">Auto Dark Mode</span>
+    </div>
+
+    <div class="kv">
+      <div class="kv-row">
+        <span class="kv-k">Тема</span>
+        <span class="kv-v">Системная</span>
+      </div>
+      <div class="kv-row">
+        <span class="kv-k">Эффекты</span>
+        <span class="kv-v">Glass + 3D Tilt</span>
+      </div>
+    </div>
+
+    <div class="card-actions">
+      <a class="btn ghost" href="/notifications/">Уведомления</a>
+      <a class="btn ghost" href="/news/">Новости</a>
+    </div>
+  </article>
+</section>
+
+{% endblock %}

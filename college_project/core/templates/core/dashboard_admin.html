@@ -1,0 +1,126 @@
+{% extends "core/dashboard_base.html" %}
+{% block title %}Director Dashboard • College Core{% endblock %}
+
+{% block topbar_left %}
+  <div class="crumbs">Директор</div>
+{% endblock %}
+
+{% block content %}
+
+<section class="page-head">
+  <div>
+    <h1 class="page-title">Панель директора</h1>
+    <p class="page-subtitle">Сводка по колледжу: люди, показатели, контроль.</p>
+  </div>
+  <a class="btn ghost" href="/admin/">Админка</a>
+</section>
+
+<section class="bento">
+  <!-- Stats Big -->
+  <article class="card big tilt" data-tilt>
+    <div class="card-head">
+      <h2 class="card-title">Сводка</h2>
+      <span class="pill">Live</span>
+    </div>
+
+    <div class="kv">
+      <div class="kv-row">
+        <span class="kv-k">Студенты</span>
+        <span class="kv-v">{{ stats.students }}</span>
+      </div>
+      <div class="kv-row">
+        <span class="kv-k">Преподаватели</span>
+        <span class="kv-v">{{ stats.teachers }}</span>
+      </div>
+      <div class="kv-row">
+        <span class="kv-k">Средний GPA</span>
+        <span class="kv-v">{{ stats.avg_gpa|floatformat:2 }}</span>
+      </div>
+      <div class="kv-row">
+        <span class="kv-k">Средняя посещаемость</span>
+        <span class="kv-v">{{ stats.avg_attendance }}</span>
+      </div>
+      <div class="kv-row">
+        <span class="kv-k">Открытых замечаний</span>
+        <span class="kv-v">{{ stats.open_remarks }}</span>
+      </div>
+    </div>
+
+    <div class="card-actions">
+      <a class="btn" href="/rating/">Рейтинг</a>
+      <a class="btn ghost" href="/remarks/">Замечания</a>
+      <a class="btn ghost" href="/schedule/">Расписание</a>
+    </div>
+  </article>
+
+  <!-- Quick tiles -->
+  <article class="card tilt" data-tilt style="grid-column: span 6;">
+    <div class="card-head">
+      <h2 class="card-title">Управление</h2>
+      <span class="pill">CRUD в админке</span>
+    </div>
+
+    <div class="list">
+      <div class="list-item">
+        <div class="list-left">
+          <div class="dot"></div>
+          <div>
+            <div class="list-title">Новости</div>
+            <div class="list-sub muted">Добавление/редактирование с картинками</div>
+          </div>
+        </div>
+        <a class="btn ghost" href="/admin/core/news/">Открыть</a>
+      </div>
+
+      <div class="list-item">
+        <div class="list-left">
+          <div class="dot"></div>
+          <div>
+            <div class="list-title">Студенты</div>
+            <div class="list-sub muted">Группы, GPA, посещаемость</div>
+          </div>
+        </div>
+        <a class="btn ghost" href="/admin/core/student/">Открыть</a>
+      </div>
+
+      <div class="list-item">
+        <div class="list-left">
+          <div class="dot"></div>
+          <div>
+            <div class="list-title">Расписание</div>
+            <div class="list-sub muted">ScheduleEntry</div>
+          </div>
+        </div>
+        <a class="btn ghost" href="/admin/core/scheduleentry/">Открыть</a>
+      </div>
+    </div>
+  </article>
+
+  <!-- News -->
+  <article class="card wide tilt" data-tilt>
+    <div class="card-head">
+      <h2 class="card-title">Новости</h2>
+      <a class="btn ghost" href="/news/">Все</a>
+    </div>
+
+    <div class="news-grid">
+      {% for n in news %}
+        <article class="news-card" style="display:grid;">
+          <div class="news-img">
+            {% if n.image %}
+              <img src="{{ n.image.url }}" alt="{{ n.title }}">
+            {% endif %}
+          </div>
+          <div class="news-body">
+            <div class="news-title">{{ n.title }}</div>
+            <div class="news-sub muted">{{ n.created_at|date:"d M Y" }}</div>
+          </div>
+        </article>
+      {% empty %}
+        <p class="muted">Новостей нет.</p>
+      {% endfor %}
+    </div>
+  </article>
+</section>
+
+{% endblock %}

@@ -1,0 +1,168 @@
+{% extends "core/dashboard_base.html" %}
+{% load static %}
+
+{% block title %}Расписание — College Core{% endblock %}
+
+{% block topbar_left %}
+  <div class="crumbs">Расписание</div>
+{% endblock %}
+
+{% block content %}
+<section class="page">
+  <div class="bento">
+    <!-- Today / Next lesson -->
+    <article class="card bento-big tilt" data-tilt>
+      <header class="card-h">
+        <div>
+          <div class="kicker">Сегодня</div>
+          <h2 class="h2">Следующая пара</h2>
+        </div>
+        <div class="pill">
+          {% if next_lesson %}
+            {{ next_lesson.subject|default:"Пара" }}
+          {% else %}
+            Нет данных
+          {% endif %}
+        </div>
+      </header>
+
+      <div class="card-b" data-countdown data-target-ms="{{ next_lesson.target_ms|default:0 }}">
+        <div class="split">
+          <div class="block">
+            <div class="label">До начала</div>
+            <div class="big" data-countdown-text>—</div>
+          </div>
+
+          <div class="block">
+            <div class="label">Аудитория</div>
+            <div class="big">
+              {% if next_lesson %}{{ next_lesson.room|default:"—" }}{% else %}—{% endif %}
+            </div>
+          </div>
+        </div>
+
+        <div class="meta">
+          {% if next_lesson %}
+            <span class="meta-item">Время: {{ next_lesson.time|default:"—" }}</span>
+            <span class="meta-dot">•</span>
+            <span class="meta-item">Преподаватель: {{ next_lesson.teacher|default:"—" }}</span>
+          {% else %}
+            <span class="meta-item">Пары не найдены</span>
+          {% endif %}
+        </div>
+      </div>
+    </article>
+
+    <!-- Week schedule -->
+    <article class="card bento-wide tilt" data-tilt>
+      <header class="card-h">
+        <div>
+          <div class="kicker">Неделя</div>
+          <h2 class="h2">Расписание занятий</h2>
+        </div>
+        <div class="pill subtle">
+          {% if request.user.student %}
+            Группа: {{ request.user.student.group.name|default:request.user.student.group }}
+          {% else %}
+            {% if request.user.teacher %}Преподаватель{% else %}Профиль{% endif %}
+          {% endif %}
+        </div>
+      </header>
+
+      <div class="card-b">
+        {% if entries %}
+          <div class="table">
+            <div class="tr th">
+              <div class="td">День</div>
+              <div class="td">Время</div>
+              <div class="td">Предмет</div>
+              <div class="td">Аудитория</div>
+              <div class="td">Преподаватель</div>
+            </div>
+
+            {% for e in entries %}
+              <div class="tr">
+                <div class="td">
+                  {% if e.weekday == 0 %}Пн{% endif %}
+                  {% if e.weekday == 1 %}Вт{% endif %}
+                  {% if e.weekday == 2 %}Ср{% endif %}
+                  {% if e.weekday == 3 %}Чт{% endif %}
+                  {% if e.weekday == 4 %}Пт{% endif %}
+                  {% if e.weekday == 5 %}Сб{% endif %}
+                  {% if e.weekday == 6 %}Вс{% endif %}
+                </div>
+
+                <div class="td">
+                  {{ e.time_start|default:"—" }} — {{ e.time_end|default:"—" }}
+                </div>
+
+                <div class="td">
+                  {{ e.subject.name|default:e.subject|default:"—" }}
+                </div>
+
+                <div class="td">
+                  {{ e.location|default:"—" }}
+                </div>
+
+                <div class="td">
+                  {% if e.teacher %}
+                    {{ e.teacher.user.first_name|default:e.teacher.user.username }} {{ e.teacher.user.last_name|default:"" }}
+                  {% else %}
+                    —
+                  {% endif %}
+                </div>
+              </div>
+            {% endfor %}
+          </div>
+        {% elif schedule_days %}
+          {# альтернативный формат, если view отдаёт schedule_days #}
+          <div class="days">
+            {% for day in schedule_days %}
+              <div class="day">
+                <div class="day-title">{{ day.title|default:"День" }}</div>
+                {% if day.items %}
+                  <div class="day-list">
+                    {% for e in day.items %}
+                      <div class="list-item">
+                        <div class="list-main">
+                          <div class="list-title">{{ e.subject|default:"Пара" }}</div>
+                          <div class="list-sub">
+                            {{ e.time|default:"—" }} · {{ e.location|default:"—" }}
+                          </div>
+                        </div>
+                      </div>
+                    {% endfor %}
+                  </div>
+                {% else %}
+                  <div class="empty">Нет пар</div>
+                {% endif %}
+              </div>
+            {% endfor %}
+          </div>
+        {% else %}
+          <div class="empty">
+            Расписание пока пустое. Запусти <code>python manage.py seed</code> или добавь записи в админке.
+          </div>
+        {% endif %}
+      </div>
+    </article>
+
+    <!-- Quick hints -->
+    <article class="card bento-small tilt" data-tilt>
+      <header class="card-h">
+        <div>
+          <div class="kicker">Подсказка</div>
+          <h2 class="h2">Как править расписание</h2>
+        </div>
+      </header>
+      <div class="card-b">
+        <ol class="steps">
+          <li>Зайди в <span class="mono">/admin/</span></li>
+          <li>Открой <span class="mono">Schedule entries</span></li>
+          <li>Добавь пары для группы или преподавателя</li>
+        </ol>
+      </div>
+    </article>
+  </div>
+</section>
+{% endblock %}

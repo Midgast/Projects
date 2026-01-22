@@ -1,0 +1,132 @@
+{% extends "core/dashboard_base.html" %}
+
+{% block title %}Оценки — College Core{% endblock %}
+
+{% block topbar_left %}
+  <div class="crumbs">Оценки</div>
+{% endblock %}
+
+{% block content %}
+<section class="page">
+  <div class="bento">
+
+    <!-- Summary -->
+    <article class="card bento-big tilt" data-tilt>
+      <header class="card-h">
+        <div>
+          <div class="kicker">Цифровая система</div>
+          <h2 class="h2">Мои оценки</h2>
+        </div>
+        <div class="pill">
+          Средний балл: <strong style="margin-left:6px">{{ stats.avg_grade|default:"—" }}</strong>
+        </div>
+      </header>
+
+      <div class="card-b">
+        <div class="split">
+          <div class="block">
+            <div class="label">Посещаемость</div>
+            <div class="big">{{ stats.attendance|default:"—" }}</div>
+          </div>
+
+          <div class="block">
+            <div class="label">Тренд</div>
+            <div class="trend">
+              <span class="dot"></span>
+              <span class="muted">Обновляется при выставлении оценок</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="divider"></div>
+
+        <div class="grid2">
+          <div class="metric">
+            <div class="metric-label">Сильный предмет</div>
+            <div class="metric-value">{{ best_subject|default:"—" }}</div>
+          </div>
+          <div class="metric">
+            <div class="metric-label">Нужна подтяжка</div>
+            <div class="metric-value">{{ weak_subject|default:"—" }}</div>
+          </div>
+        </div>
+      </div>
+    </article>
+
+    <!-- Filter -->
+    <article class="card bento-small tilt" data-tilt>
+      <header class="card-h">
+        <div>
+          <div class="kicker">Фильтр</div>
+          <h2 class="h2">Предмет</h2>
+        </div>
+      </header>
+      <div class="card-b">
+        <form method="get" class="form">
+          <select class="input" name="subject">
+            <option value="">Все предметы</option>
+            {% for s in subjects %}
+              <option value="{{ s.id }}" {% if selected_subject_id == s.id %}selected{% endif %}>
+                {{ s.name }}
+              </option>
+            {% endfor %}
+          </select>
+          <button class="btn" type="submit">Применить</button>
+        </form>
+
+        <div class="hint">
+          Если список пуст — добавь предметы/оценки через админку или seed.
+        </div>
+      </div>
+    </article>
+
+    <!-- Table -->
+    <article class="card bento-wide tilt" data-tilt>
+      <header class="card-h">
+        <div>
+          <div class="kicker">Журнал</div>
+          <h2 class="h2">История оценок</h2>
+        </div>
+        <div class="pill subtle">
+          Всего: {{ grades|length|default:0 }}
+        </div>
+      </header>
+
+      <div class="card-b">
+        {% if grades %}
+          <div class="table">
+            <div class="tr th">
+              <div class="td">Дата</div>
+              <div class="td">Предмет</div>
+              <div class="td">Оценка</div>
+              <div class="td">Комментарий</div>
+            </div>
+
+            {% for g in grades %}
+              <div class="tr">
+                <div class="td">
+                  {{ g.created_at|date:"d.m.Y H:i"|default:"—" }}
+                </div>
+                <div class="td">
+                  {{ g.subject.name|default:g.subject|default:"—" }}
+                </div>
+                <div class="td">
+                  <span class="score">{{ g.value|default:"—" }}</span>
+                </div>
+                <div class="td">
+                  <span class="muted">{{ g.note|default:"" }}</span>
+                </div>
+              </div>
+            {% endfor %}
+          </div>
+        {% else %}
+          <div class="empty">
+            Оценок пока нет. Добавь через админку или запусти <code>python manage.py seed</code>.
+          </div>
+        {% endif %}
+      </div>
+    </article>
+
+  </div>
+</section>
+{% endblock %}

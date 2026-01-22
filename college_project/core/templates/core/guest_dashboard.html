@@ -1,0 +1,203 @@
+{% load static %}
+<!doctype html>
+<html lang="ru">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>College Core • Demo</title>
+  <link rel="icon" href="{% static 'favicon.ico' %}">
+
+
+  <link rel="stylesheet" href="{% static 'css/style.css' %}">
+  <script defer src="{% static 'js/tilt.js' %}"></script>
+</head>
+
+<body class="app" style="grid-template-columns: 72px 1fr;">
+  <div class="bg-noise" aria-hidden="true"></div>
+
+  <aside class="sidebar" aria-label="Навигация">
+    <a class="brand" href="/">
+      <span class="brand-mark">CC</span>
+      <span class="brand-text">College Core</span>
+    </a>
+
+    <nav class="nav">
+      <a class="nav-item" href="#">
+        <span class="nav-ic">⌂</span><span class="nav-tx">Дом</span>
+      </a>
+      <a class="nav-item" href="#">
+        <span class="nav-ic">▦</span><span class="nav-tx">Расписание</span>
+      </a>
+      <a class="nav-item" href="#">
+        <span class="nav-ic">★</span><span class="nav-tx">Оценки</span>
+      </a>
+      <a class="nav-item" href="#">
+        <span class="nav-ic">✓</span><span class="nav-tx">Домашки</span>
+      </a>
+      <a class="nav-item" href="#">
+        <span class="nav-ic">!</span><span class="nav-tx">Замечания</span>
+      </a>
+      <a class="nav-item" href="#">
+        <span class="nav-ic">⇧</span><span class="nav-tx">Рейтинг</span>
+      </a>
+      <a class="nav-item" href="#">
+        <span class="nav-ic">⟡</span><span class="nav-tx">Уведомления</span>
+      </a>
+      <a class="nav-item" href="#">
+        <span class="nav-ic">▣</span><span class="nav-tx">Новости</span>
+      </a>
+      <a class="nav-item" href="#">
+        <span class="nav-ic">⚙</span><span class="nav-tx">Настройки</span>
+      </a>
+    </nav>
+  </aside>
+
+  <main class="main">
+    <header class="topbar">
+      <div class="topbar-left">
+        <div class="crumbs">Demo • Пустой профиль</div>
+      </div>
+
+      <div class="topbar-right">
+        <a class="avatar" href="/login/" aria-label="Войти">
+          <span class="avatar-dot"></span>
+          <span class="avatar-name">Войти</span>
+        </a>
+      </div>
+    </header>
+
+    <div class="content">
+      <section class="page-head">
+        <div>
+          <h1 class="page-title">College Core</h1>
+          <p class="page-subtitle">Демо-режим: почти все функции видны, но доступны только после входа.</p>
+        </div>
+        <a class="btn" href="/login/">Открыть профиль</a>
+      </section>
+
+      <section class="bento">
+        <article class="card big tilt" data-tilt>
+          <div class="card-head">
+            <h2 class="card-title">Мой рейтинг</h2>
+            <span class="pill">Demo</span>
+          </div>
+
+          <div class="rating-wrap">
+            <div class="ring" style="--p: 82;">
+              <div class="ring-center">
+                <div class="ring-big">4.6</div>
+                <div class="ring-sub">Средний балл</div>
+              </div>
+            </div>
+
+            <div class="kv" style="margin-top: 12px;">
+              <div class="kv-row"><span class="kv-k">Посещаемость</span><span class="kv-v">82%</span></div>
+              <div class="kv-row"><span class="kv-k">Средняя оценка</span><span class="kv-v">4.6</span></div>
+            </div>
+          </div>
+        </article>
+
+        <article class="card tilt" data-tilt style="grid-column: span 6;">
+          <div class="card-head">
+            <h2 class="card-title">Следующая пара</h2>
+            <span class="pill">Demo</span>
+          </div>
+
+          <div class="list">
+            <div class="list-item">
+              <div class="list-left">
+                <div class="dot"></div>
+                <div>
+                  <div class="list-title">Веб-разработка</div>
+                  <div class="list-sub">101 каб • через 15 минут</div>
+                </div>
+              </div>
+              <span class="tag good">Скоро</span>
+            </div>
+            <div class="list-item">
+              <div class="list-left">
+                <div class="dot"></div>
+                <div>
+                  <div class="list-title">До начала</div>
+                  <div class="list-sub muted">Таймер доступен после входа</div>
+                </div>
+              </div>
+              <div class="list-meta">—</div>
+            </div>
+          </div>
+
+          <div class="card-actions">
+            <a class="btn ghost" href="/login/">Войти и открыть расписание</a>
+          </div>
+        </article>
+
+        <article class="card tall tilt" data-tilt>
+          <div class="card-head">
+            <h2 class="card-title">Домашние задания</h2>
+            <span class="pill">Demo</span>
+          </div>
+
+          <div class="list">
+            <div class="list-item">
+              <div class="list-left">
+                <div class="check"></div>
+                <div>
+                  <div class="list-title">Сверстать карточки</div>
+                  <div class="list-sub">UI/UX • дедлайн завтра</div>
+                </div>
+              </div>
+              <span class="pill mini">Locked</span>
+            </div>
+            <div class="list-item">
+              <div class="list-left">
+                <div class="check"></div>
+                <div>
+                  <div class="list-title">Сделать API для оценок</div>
+                  <div class="list-sub">Backend • дедлайн 2 дня</div>
+                </div>
+              </div>
+              <span class="pill mini">Locked</span>
+            </div>
+          </div>
+        </article>
+
+        <article class="card wide tilt" data-tilt>
+          <div class="card-head">
+            <h2 class="card-title">Новости</h2>
+            <span class="pill">Demo</span>
+          </div>
+
+          <div class="news-grid">
+            {% for n in news %}
+              <article class="news-card" style="display:grid;">
+                <div class="news-img">
+                  {% if n.image %}
+                    <img src="{{ n.image.url }}" alt="{{ n.title }}">
+                  {% endif %}
+                </div>
+                <div class="news-body">
+                  <div class="news-title">{{ n.title }}</div>
+                  <div class="news-sub muted">{{ n.created_at|date:"d M Y, H:i" }}</div>
+                </div>
+              </article>
+            {% empty %}
+              <article class="news-card" style="display:grid;">
+                <div class="news-img"></div>
+                <div class="news-body">
+                  <div class="news-title">Добро пожаловать в College Core</div>
+                  <div class="news-sub muted">Добавь новости в админке после seed</div>
+                </div>
+              </article>
+            {% endfor %}
+          </div>
+
+          <div class="card-actions">
+            <a class="btn" href="/login/">Войти</a>
+            <a class="btn ghost" href="/admin/">Админка</a>
+          </div>
+        </article>
+      </section>
+    </div>
+  </main>
+</body>
+</html>

@@ -1,0 +1,92 @@
+{% load static %}
+<!doctype html>
+<html lang="ru">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>{% block title %}College Core{% endblock %}</title>
+<link rel="icon" href="{% static 'favicon.ico' %}">
+
+  <link rel="stylesheet" href="{% static 'css/style.css' %}">
+</head>
+
+<body class="app">
+  <div class="bg-noise" aria-hidden="true"></div>
+
+  <aside class="sidebar" aria-label="Навигация">
+    <a class="brand" href="/dashboard/">
+      <span class="brand-mark">CC</span>
+      <span class="brand-text">College Core</span>
+    </a>
+
+    <nav class="nav">
+      <a class="nav-item" href="/dashboard/">
+        <span class="nav-ic">⌂</span><span class="nav-tx">Дом</span>
+      </a>
+
+      <a class="nav-item" href="/schedule/">
+        <span class="nav-ic">▦</span><span class="nav-tx">Расписание</span>
+      </a>
+
+      <a class="nav-item" href="/grades/">
+        <span class="nav-ic">★</span><span class="nav-tx">Оценки</span>
+      </a>
+
+      <a class="nav-item" href="/homeworks/">
+        <span class="nav-ic">✓</span><span class="nav-tx">Домашки</span>
+      </a>
+
+      <a class="nav-item" href="/remarks/">
+        <span class="nav-ic">!</span><span class="nav-tx">Замечания</span>
+      </a>
+
+      <a class="nav-item" href="/rating/">
+        <span class="nav-ic">⇧</span><span class="nav-tx">Рейтинг</span>
+      </a>
+
+      <a class="nav-item" href="/notifications/">
+        <span class="nav-ic">⟡</span><span class="nav-tx">Уведомления</span>
+      </a>
+
+      <a class="nav-item" href="/news/">
+        <span class="nav-ic">▣</span><span class="nav-tx">Новости</span>
+      </a>
+
+      <a class="nav-item" href="/settings/">
+        <span class="nav-ic">⚙</span><span class="nav-tx">Настройки</span>
+      </a>
+    </nav>
+  </aside>
+
+  <main class="main">
+    <header class="topbar">
+      <div class="topbar-left">
+        {% block topbar_left %}<div class="crumbs">Dashboard</div>{% endblock %}
+      </div>
+
+      <div class="topbar-right">
+        <a class="notif" href="/notifications/" aria-label="Уведомления">
+          <span class="notif-ic">⟡</span>
+          <span id="notifBadge" class="badge" data-count="{{ unread_notifications_count|default:0 }}">
+            {{ unread_notifications_count|default:0 }}
+          </span>
+        </a>
+
+        <a class="avatar" href="/settings/" aria-label="Профиль и настройки">
+          <span class="avatar-dot"></span>
+          <span class="avatar-name">{{ request.user.first_name|default:request.user.username }}</span>
+        </a>
+      </div>
+    </header>
+
+    <div class="content">
+      {% block content %}{% endblock %}
+    </div>
+  </main>
+
+  <!-- JS: global -->
+  <script defer src="{% static 'js/tilt.js' %}"></script>
+  <script defer src="{% static 'js/app.js' %}"></script>
+  <script defer src="{% static 'js/notifications.js' %}"></script>
+</body>
+</html>
