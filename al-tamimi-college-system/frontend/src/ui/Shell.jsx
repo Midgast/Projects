@@ -3,6 +3,7 @@ import { Link, NavLink, Outlet, useNavigate } from "react-router-dom";
 import { BarChart3, CalendarDays, LogOut, Medal, Newspaper, ShieldCheck, Users } from "lucide-react";
 
 import { useAuth } from "../app/auth/AuthContext.jsx";
+import { useI18n } from "../app/i18n/I18nContext.jsx";
 
 function NavItem({ to, icon: Icon, label }) {
   return (
@@ -27,6 +28,7 @@ export function Shell() {
   const { user, logout } = useAuth();
   const navigate = useNavigate();
   const [logoOk, setLogoOk] = useState(true);
+  const { lang, setLang, t } = useI18n();
 
   const isAdmin = user?.role === "admin";
   const isTeacher = user?.role === "teacher";
@@ -67,13 +69,33 @@ export function Shell() {
             </div>
 
             <nav className="mt-4 space-y-1">
-              <NavItem to="/" icon={BarChart3} label="Dashboard" />
-              <NavItem to="/schedule" icon={CalendarDays} label="Schedule" />
-              {(isTeacher || isAdmin) && <NavItem to="/journal" icon={Users} label="Attendance Journal" />}
-              <NavItem to="/news" icon={Newspaper} label="Announcements" />
-              <NavItem to="/badges" icon={Medal} label="Badges" />
-              {isAdmin && <NavItem to="/analytics" icon={BarChart3} label="Analytics" />}
+              <NavItem to="/" icon={BarChart3} label={t("dashboard")} />
+              <NavItem to="/schedule" icon={CalendarDays} label={t("schedule")} />
+              {(isTeacher || isAdmin) && <NavItem to="/journal" icon={Users} label={t("journal")} />}
+              <NavItem to="/news" icon={Newspaper} label={t("announcements")} />
+              <NavItem to="/badges" icon={Medal} label={t("badges")} />
+              {isAdmin && <NavItem to="/analytics" icon={BarChart3} label={t("analytics")} />}
             </nav>
+
+            <div className="mt-4 rounded-2xl border border-white/10 bg-white/5 p-3">
+              <div className="text-xs font-semibold text-slate-300">{t("language")}</div>
+              <div className="mt-2 grid grid-cols-2 gap-2">
+                <button
+                  type="button"
+                  className={`btn-ghost w-full ${lang === "ru" ? "bg-white/10" : ""}`}
+                  onClick={() => setLang("ru")}
+                >
+                  {t("ru")}
+                </button>
+                <button
+                  type="button"
+                  className={`btn-ghost w-full ${lang === "ky" ? "bg-white/10" : ""}`}
+                  onClick={() => setLang("ky")}
+                >
+                  {t("ky")}
+                </button>
+              </div>
+            </div>
 
             <button
               className="btn-ghost mt-4 w-full"

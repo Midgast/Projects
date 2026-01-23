@@ -4,7 +4,9 @@ import { AlertTriangle, CheckCircle2, TrendingUp } from "lucide-react";
 
 import { useAuth } from "../app/auth/AuthContext.jsx";
 import { apiFetch } from "../app/api.js";
+import { useI18n } from "../app/i18n/I18nContext.jsx";
 import { RiskPill } from "../ui/RiskPill.jsx";
+import { AssistantWidget } from "../ui/AssistantWidget.jsx";
 
 function StatCard({ title, value, sub, icon: Icon }) {
   return (
@@ -25,6 +27,7 @@ function StatCard({ title, value, sub, icon: Icon }) {
 
 export function DashboardPage() {
   const { token, user } = useAuth();
+  const { t } = useI18n();
   const [studentStats, setStudentStats] = useState(null);
   const [news, setNews] = useState([]);
 
@@ -58,7 +61,7 @@ export function DashboardPage() {
     <div>
       <div className="flex items-start justify-between gap-4">
         <div>
-          <div className="text-xl font-extrabold tracking-tight">Dashboard</div>
+          <div className="text-xl font-extrabold tracking-tight">{t("dashboard")}</div>
           <div className="mt-1 text-sm text-slate-500">Role-based view for {user?.role}</div>
         </div>
         {user?.role === "student" && studentStats?.risk && <RiskPill level={studentStats.risk.level} score={studentStats.risk.score} />}
@@ -106,6 +109,10 @@ export function DashboardPage() {
             {news.length === 0 && <div className="text-sm text-slate-500">No announcements yet.</div>}
           </div>
         </div>
+      </div>
+
+      <div className="mt-4">
+        <AssistantWidget />
       </div>
     </div>
   );

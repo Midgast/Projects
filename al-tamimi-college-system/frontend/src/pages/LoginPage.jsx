@@ -3,10 +3,12 @@ import { useNavigate } from "react-router-dom";
 import { ShieldCheck } from "lucide-react";
 
 import { useAuth } from "../app/auth/AuthContext.jsx";
+import { useI18n } from "../app/i18n/I18nContext.jsx";
 
 export function LoginPage() {
   const { login } = useAuth();
   const navigate = useNavigate();
+  const { lang, setLang, t } = useI18n();
 
   const [email, setEmail] = useState("admin@altamimi.local");
   const [password, setPassword] = useState("Admin123!");
@@ -32,13 +34,19 @@ export function LoginPage() {
                 />
               </div>
               <div>
-                <div className="text-xl font-extrabold tracking-tight">AL TAMIMI College System</div>
+                <div className="text-xl font-extrabold tracking-tight">{t("login_title")}</div>
                 <div className="mt-1 text-sm text-slate-300">Attendance · Risk · Analytics · Awards</div>
               </div>
             </div>
 
             <div className="mt-6 rounded-2xl border border-white/10 bg-white/5 p-4">
-              <div className="text-xs font-semibold text-slate-300">Quick role switch</div>
+              <div className="flex items-center justify-between gap-3">
+                <div className="text-xs font-semibold text-slate-300">{t("quick_role")}</div>
+                <select className="rounded-xl" value={lang} onChange={(e) => setLang(e.target.value)}>
+                  <option value="ru">{t("ru")}</option>
+                  <option value="ky">{t("ky")}</option>
+                </select>
+              </div>
               <div className="mt-3 grid grid-cols-1 gap-2 sm:grid-cols-3">
                 <button
                   type="button"
@@ -48,7 +56,7 @@ export function LoginPage() {
                     setPassword("Admin123!");
                   }}
                 >
-                  Admin
+                  {t("admin")}
                 </button>
                 <button
                   type="button"
@@ -58,7 +66,7 @@ export function LoginPage() {
                     setPassword("Teacher123!");
                   }}
                 >
-                  Teacher
+                  {t("teacher")}
                 </button>
                 <button
                   type="button"
@@ -68,7 +76,7 @@ export function LoginPage() {
                     setPassword("Student123!");
                   }}
                 >
-                  Student
+                  {t("student")}
                 </button>
               </div>
             </div>
@@ -90,7 +98,7 @@ export function LoginPage() {
               }}
             >
               <div>
-                <label className="text-xs font-semibold text-slate-300">Email</label>
+                <label className="text-xs font-semibold text-slate-300">{t("email")}</label>
                 <input
                   className="mt-1 w-full rounded-xl"
                   value={email}
@@ -99,7 +107,7 @@ export function LoginPage() {
                 />
               </div>
               <div>
-                <label className="text-xs font-semibold text-slate-300">Password</label>
+                <label className="text-xs font-semibold text-slate-300">{t("password")}</label>
                 <input
                   type="password"
                   className="mt-1 w-full rounded-xl"
@@ -115,7 +123,7 @@ export function LoginPage() {
               )}
 
               <button className="btn-primary w-full" disabled={loading}>
-                {loading ? "Signing in..." : "Sign in"}
+                {loading ? "..." : t("sign_in")}
               </button>
 
               <div className="text-center text-xs text-slate-400">

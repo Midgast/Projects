@@ -13,6 +13,7 @@ import { awardsRouter } from "./routes/awards.js";
 import { analyticsRouter } from "./routes/analytics.js";
 import { exportRouter } from "./routes/export.js";
 import { metaRouter } from "./routes/meta.js";
+import { assistantRouter } from "./routes/assistant.js";
 import { pool } from "./db.js";
 
 const app = express();
@@ -38,6 +39,7 @@ app.use("/api/awards", awardsRouter);
 app.use("/api/analytics", analyticsRouter);
 app.use("/api/export", exportRouter);
 app.use("/api/meta", metaRouter);
+app.use("/api/assistant", assistantRouter);
 
 app.use((err, req, res, next) => {
   const status = err.status || 500;
