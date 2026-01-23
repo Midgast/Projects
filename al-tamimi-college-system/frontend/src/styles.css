@@ -1,0 +1,110 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  color-scheme: dark;
+}
+
+html, body {
+  height: 100%;
+}
+
+body {
+  @apply bg-slate-950 text-slate-50 antialiased;
+  background-image:
+    radial-gradient(900px 600px at 15% 10%, rgba(59, 130, 246, 0.40), transparent 55%),
+    radial-gradient(800px 520px at 85% 15%, rgba(99, 102, 241, 0.36), transparent 58%),
+    radial-gradient(700px 520px at 55% 75%, rgba(16, 185, 129, 0.22), transparent 60%),
+    linear-gradient(180deg, rgba(2, 6, 23, 1) 0%, rgba(2, 6, 23, 0.92) 55%, rgba(15, 23, 42, 1) 100%);
+}
+
+.card {
+  @apply rounded-2xl border border-white/10 bg-white/5 shadow-xl;
+  backdrop-filter: blur(10px);
+}
+
+.card:hover {
+  @apply shadow-2xl;
+}
+
+.card {
+  @apply transition-shadow;
+}
+
+.btn {
+  @apply inline-flex items-center justify-center gap-2 rounded-xl px-4 py-2 text-sm font-semibold transition;
+  @apply focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-400/70 focus-visible:ring-offset-2 focus-visible:ring-offset-slate-950;
+}
+
+.btn:disabled {
+  @apply cursor-not-allowed opacity-60;
+}
+
+.btn-primary {
+  @apply btn text-white shadow-lg;
+  background-image: linear-gradient(135deg, #2563eb 0%, #4f46e5 40%, #9333ea 100%);
+}
+
+.btn-primary:hover {
+  box-shadow:
+    0 12px 30px rgba(37, 99, 235, 0.25),
+    0 10px 22px rgba(147, 51, 234, 0.18);
+}
+
+.btn-ghost {
+  @apply btn border border-white/15 bg-white/5 text-slate-50 hover:bg-white/10;
+}
+
+.badge {
+  @apply inline-flex items-center rounded-full px-2.5 py-1 text-xs font-semibold;
+  @apply border border-white/15 bg-white/5;
+}
+
+a {
+  @apply text-brand-200 hover:text-brand-100;
+}
+
+input, select, textarea {
+  @apply bg-white/5 border-white/15 text-slate-50 placeholder:text-slate-400;
+  @apply focus:outline-none focus:ring-2 focus:ring-brand-400/60 focus:border-brand-300;
+}
+
+table {
+  @apply w-full;
+}
+
+thead th {
+  @apply text-xs font-extrabold text-slate-200;
+}
+
+tbody td {
+  @apply text-sm text-slate-100;
+}
+
+tbody tr:hover td {
+  @apply bg-white/5;
+}
+
+@keyframes floatGlow {
+  0% { transform: translateY(0px); filter: drop-shadow(0 0 0 rgba(59,130,246,0)); }
+  50% { transform: translateY(-1px); filter: drop-shadow(0 10px 20px rgba(59,130,246,0.15)); }
+  100% { transform: translateY(0px); filter: drop-shadow(0 0 0 rgba(59,130,246,0)); }
+}
+
+.card {
+  animation: floatGlow 10s ease-in-out infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .card {
+    animation: none;
+  }
+}
+
+.logo-fallback {
+  @apply grid place-items-center rounded-2xl border border-white/10 bg-white/5 text-white;
+  box-shadow:
+    0 12px 30px rgba(37, 99, 235, 0.18),
+    0 10px 22px rgba(147, 51, 234, 0.12);
+}
