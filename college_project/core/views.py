@@ -1,18 +1,19 @@
-# college_project/core/views.py
 from __future__ import annotations
 
-from dataclasses import dataclass
 from datetime import datetime, timedelta
 from types import SimpleNamespace
-from typing import Optional, Iterable
+from typing import Optional, Tuple, Iterable
 
-from django.contrib.auth import authenticate, login, logout
+from django.contrib import messages
+from django.contrib.auth import login, logout
 from django.contrib.auth.decorators import login_required
 from django.db.models import Avg, Q
-from django.http import JsonResponse, HttpResponseForbidden
+from django.http import JsonResponse
 from django.shortcuts import get_object_or_404, redirect, render
 from django.utils import timezone
+from django.views.decorators.http import require_POST
 
+from .forms import LoginForm
 from .models import (
     Director,
     Grade,
@@ -23,187 +24,216 @@ from .models import (
     Remark,
     ScheduleEntry,
     Student,
-    Subject,
     Teacher,
 )
+from .permissions import can_toggle_homework
 
 
-# =========================
-# Helpers: roles & time
-# =========================
+# -----------------------------
+# Helpers
+# -----------------------------
 
-def _profiles(user):
-    """Return (student, teacher, director). Any can be None."""
-    student = teacher = director = None
-    try:
-        student = user.student
-    except Exception:
-        student = None
-
-    try:
-        teacher = user.teacher
-    except Exception:
-        teacher = None
-
-    try:
-        director = user.director
-    except Exception:
-        director = None
-
-    return student, teacher, director
+def _now_local():
+    return timezone.localtime(timezone.now())
 
 
-def _weekday_label(dow: int) -> str:
-    # Monday=0 ... Sunday=6 (Django/Python weekday)
-    labels = ["Пн", "Вт", "Ср", "Чт", "Пт", "Сб", "Вс"]
-    try:
-        return labels[int(dow)]
-    except Exception:
-        return "—"
+def _as_aware_local(dt_naive: datetime) -> datetime:
+    tz = timezone.get_current_timezone()
+    return timezone.make_aware(dt_naive, tz)
 
 
-def _next_occurrence_datetime(entry: ScheduleEntry, now: datetime) -> datetime:
+def _next_occurrence_for_entry(entry: ScheduleEntry, now: datetime) -> datetime:
     """
-    Find next datetime occurrence for weekly ScheduleEntry (day_of_week + time_start).
-    Uses settings TIME_ZONE.
+    Next occurrence datetime for ScheduleEntry относительно now (локальная TZ).
     """
-    if timezone.is_naive(now):
-        now = timezone.make_aware(now, timezone.get_current_timezone())
+    days_ahead = (entry.weekday - now.weekday()) % 7
+    candidate_date = now.date() + timedelta(days=days_ahead)
 
-    days_ahead = (entry.day_of_week - now.weekday()) % 7
-    target_date = (now + timedelta(days=days_ahead)).date()
-    candidate = timezone.make_aware(
-        datetime.combine(target_date, entry.time_start),
-        timezone.get_current_timezone(),
-    )
-    # If it's today but already started, jump a week
-    if candidate <= now:
+    candidate_naive = datetime.combine(candidate_date, entry.time_start)
+    candidate = _as_aware_local(candidate_naive)
+
+    if days_ahead == 0 and candidate <= now:
         candidate = candidate + timedelta(days=7)
+
     return candidate
 
 
-def _find_next_lesson(qs: Iterable[ScheduleEntry], now: datetime):
-    """Return (entry, start_dt) for the closest upcoming entry, else (None, None)."""
+def _find_next_lesson(qs, now: datetime) -> Tuple[Optional[ScheduleEntry], Optional[datetime]]:
+    """
+    Ближайшая пара по реальной дате (weekday + time_start).
+    """
+    entries = list(qs)
+    if not entries:
+        return None, None
+
     best = None
     best_dt = None
-    for e in qs:
-        dt = _next_occurrence_datetime(e, now)
+
+    for e in entries:
+        dt = _next_occurrence_for_entry(e, now)
         if best_dt is None or dt < best_dt:
             best_dt = dt
             best = e
+
     return best, best_dt
 
 
-def _teacher_groups_qs(teacher: Teacher):
-    return Group.objects.filter(schedule_entries__teacher=teacher).distinct().order_by("code")
+def _patch_group_code(group: Group) -> Group:
+    # чтобы шаблоны могли обращаться как group.code даже если поле называется иначе
+    if not hasattr(group, "code"):
+        setattr(group, "code", getattr(group, "name", ""))
+    return group
 
 
-def _safe_int(s: str | None) -> Optional[int]:
-    if not s:
-        return None
+def _patch_entry_group_code(entry: ScheduleEntry) -> ScheduleEntry:
+    _patch_group_code(entry.group)
+    return entry
+
+
+def _patch_news_alias(news_qs: Iterable[News]) -> list[News]:
+    items = list(news_qs)
+    for n in items:
+        if not hasattr(n, "content"):
+            setattr(n, "content", getattr(n, "text", ""))
+    return items
+
+
+def _student_stats(student: Student) -> dict:
+    avg_grade = (
+        Grade.objects.filter(student=student).aggregate(a=Avg("value")).get("a")
+        or getattr(student, "gpa", 0)
+        or 0
+    )
+    return {
+        "avg_grade": float(avg_grade),
+        "attendance": f"{getattr(student, 'attendance', 0)}%",
+    }
+
+
+def _group_place(student: Student) -> Tuple[int, int]:
+    qs = Student.objects.filter(group=student.group).order_by("-gpa", "-attendance", "user__username")
+    ids = list(qs.values_list("id", flat=True))
+    total = len(ids)
     try:
-        return int(s)
-    except Exception:
-        return None
+        place = ids.index(student.id) + 1
+    except ValueError:
+        place = 0
+    return place, total
 
 
-# =========================
-# Auth
-# =========================
+def _normalize_remark(r: Remark) -> SimpleNamespace:
+    level = (getattr(r, "level", "") or "").upper()
+    if level == "CRITICAL":
+        severity = "high"
+        title = "Замечание: критично"
+    elif level == "WARN":
+        severity = "medium"
+        title = "Замечание: предупреждение"
+    else:
+        severity = "low"
+        title = "Замечание"
+
+    return SimpleNamespace(
+        id=r.id,
+        title=title,
+        message=getattr(r, "text", ""),
+        severity=severity,
+        resolved=getattr(r, "resolved", False),
+        created_at=getattr(r, "created_at", None),
+        student=getattr(r, "student", None),
+        teacher=getattr(r, "teacher", None),
+    )
+
+
+# -----------------------------
+# Public pages (guest/login)
+# -----------------------------
 
 def guest_landing(request):
-    # Публичная “пустая” витрина (до логина)
-    return render(request, "core/guest_dashboard.html")
+    if request.user.is_authenticated:
+        return redirect("dashboard_router")
+
+    news = _patch_news_alias(News.objects.order_by("-created_at")[:2])
+    return render(request, "core/guest_dashboard.html", {"news": news})
 
 
 def login_view(request):
     if request.user.is_authenticated:
-        return redirect("/dashboard/")
+        return redirect("dashboard_router")
 
-    error = ""
+    form = LoginForm(request, data=request.POST or None)
     if request.method == "POST":
-        username = request.POST.get("username", "").strip()
-        password = request.POST.get("password", "").strip()
-        user = authenticate(request, username=username, password=password)
-        if user is not None:
-            login(request, user)
-            return redirect(request.GET.get("next") or "/dashboard/")
-        error = "Неверный логин или пароль."
+        if form.is_valid():
+            login(request, form.get_user())
+            return redirect("dashboard_router")
+        messages.error(request, "Неверный логин или пароль.")
 
-    return render(request, "core/login.html", {"error": error})
+    return render(request, "core/login.html", {"form": form})
 
 
 def logout_view(request):
     logout(request)
-    return redirect("/login/")
+    return redirect("login")
 
 
-# =========================
-# Dashboards (router)
-# =========================
+# -----------------------------
+# Dashboards
+# -----------------------------
 
 @login_required
 def dashboard_router(request):
-    student, teacher, director = _profiles(request.user)
+    user = request.user
 
-    # Важно: директор приоритетнее, даже если он ещё и teacher
-    if director:
-        return director_dashboard(request)
-    if teacher:
-        return teacher_dashboard(request)
+    student = Student.objects.filter(user=user).select_related("group", "user").first()
     if student:
         return student_dashboard(request)
 
-    # Если вдруг юзер без профилей
-    return redirect("/")
+    teacher = Teacher.objects.filter(user=user).select_related("user").first()
+    if teacher:
+        return teacher_dashboard(request)
+
+    director = Director.objects.filter(user=user).select_related("user").first()
+    if director:
+        return director_dashboard(request)
+
+    return redirect("guest_landing")
 
 
 @login_required
 def student_dashboard(request):
-    student, _, _ = _profiles(request.user)
-    if not student:
-        return redirect("/dashboard/")
+    student = get_object_or_404(Student.objects.select_related("group", "user"), user=request.user)
+    _patch_group_code(student.group)
 
-    now = timezone.localtime()
+    now = _now_local()
     schedule_qs = (
-        ScheduleEntry.objects
-        .filter(group=student.group)
+        ScheduleEntry.objects.filter(group=student.group)
         .select_related("subject", "teacher__user", "group")
+        .order_by("weekday", "time_start")
     )
-    next_entry, next_dt = _find_next_lesson(schedule_qs, now)
+    next_lesson, next_dt = _find_next_lesson(schedule_qs, now)
+    if next_lesson:
+        _patch_entry_group_code(next_lesson)
 
-    news = News.objects.all()[:2]
-    homeworks = (
-        Homework.objects
-        .filter(student=student)
+    homeworks = list(
+        Homework.objects.filter(student=student)
         .select_related("subject")
-        .order_by("completed", "deadline")[:6]
+        .order_by("completed", "deadline")[:3]
     )
+    for hw in homeworks:
+        hw.own = True
 
-    # Рейтинг места в группе (по GPA, потом посещаемость)
-    group_students = (
-        Student.objects
-        .filter(group=student.group)
-        .select_related("user")
-        .order_by("-gpa", "-attendance", "user__last_name", "user__first_name")
-    )
-    group_place = None
-    for idx, s in enumerate(group_students, start=1):
-        if s.id == student.id:
-            group_place = idx
-            break
+    news = _patch_news_alias(News.objects.order_by("-created_at")[:4])
 
-    # Средний балл по оценкам (реальный) + посещаемость
-    avg_grade = (
-        Grade.objects.filter(student=student).aggregate(a=Avg("value")).get("a") or 0
-    )
+    stats = _student_stats(student)
+    place, total = _group_place(student)
 
     context = {
         "student": student,
-        "stats": {"avg_grade": float(avg_grade), "attendance": f"{student.attendance}%"},
-        "group_place": group_place,
-        "group_total": group_students.count(),
-        "next_lesson": next_entry,
+        "profile": student,  # на случай, если шаблон ждёт profile
+        "stats": stats,
+        "group_place": place,
+        "group_total": total,
+        "next_lesson": next_lesson,
         "next_lesson_start": next_dt,
         "timestamp_ms": int(next_dt.timestamp() * 1000) if next_dt else 0,
         "homeworks": homeworks,
@@ -214,37 +244,33 @@ def student_dashboard(request):
 
 @login_required
 def teacher_dashboard(request):
-    _, teacher, director = _profiles(request.user)
+    teacher = get_object_or_404(Teacher.objects.select_related("user"), user=request.user)
+    now = _now_local()
 
-    # Если это директор, но у него есть teacher-профиль — пускаем как teacher тоже.
-    if not teacher and director:
-        try:
-            teacher = request.user.teacher
-        except Exception:
-            teacher = None
-
-    if not teacher:
-        return redirect("/dashboard/")
-
-    now = timezone.localtime()
     schedule_qs = (
-        ScheduleEntry.objects
-        .filter(teacher=teacher)
+        ScheduleEntry.objects.filter(teacher=teacher)
         .select_related("subject", "teacher__user", "group")
+        .order_by("weekday", "time_start")
     )
-    next_entry, next_dt = _find_next_lesson(schedule_qs, now)
+    next_lesson, next_dt = _find_next_lesson(schedule_qs, now)
+    if next_lesson:
+        _patch_entry_group_code(next_lesson)
 
-    groups = _teacher_groups_qs(teacher)
-    open_remarks = Remark.objects.filter(Q(teacher=teacher) | Q(author=request.user), resolved=False).count()
-    news = News.objects.all()[:2]
+    group_ids = schedule_qs.values_list("group_id", flat=True).distinct()
+    groups = list(Group.objects.filter(id__in=group_ids).order_by("code"))
+    for g in groups:
+        _patch_group_code(g)
+
+    open_remarks = Remark.objects.filter(teacher=teacher, resolved=False).count()
+    news = _patch_news_alias(News.objects.order_by("-created_at")[:4])
 
     context = {
         "teacher": teacher,
-        "next_lesson": next_entry,
-        "next_lesson_start": next_dt,
-        "timestamp_ms": int(next_dt.timestamp() * 1000) if next_dt else 0,
         "groups": groups,
         "open_remarks": open_remarks,
+        "next_lesson": next_lesson,
+        "next_lesson_start": next_dt,
+        "timestamp_ms": int(next_dt.timestamp() * 1000) if next_dt else 0,
         "news": news,
     }
     return render(request, "core/dashboard_teacher.html", context)
@@ -252,317 +278,193 @@ def teacher_dashboard(request):
 
 @login_required
 def director_dashboard(request):
-    _, teacher, director = _profiles(request.user)
-    if not director:
-        return redirect("/dashboard/")
+    director = get_object_or_404(Director.objects.select_related("user"), user=request.user)
 
-    # Директор = тоже преподаватель (если есть teacher-профиль)
-    if not teacher:
-        try:
-            teacher = request.user.teacher
-        except Exception:
-            teacher = None
+    students_count = Student.objects.count()
+    teachers_count = Teacher.objects.count()
+    avg_gpa = Student.objects.aggregate(a=Avg("gpa")).get("a") or 0
+    avg_att = Student.objects.aggregate(a=Avg("attendance")).get("a") or 0
+    open_remarks_all = Remark.objects.filter(resolved=False).count()
 
-    now = timezone.localtime()
+    news = _patch_news_alias(News.objects.order_by("-created_at")[:4])
 
-    # “Системная” статистика
-    stats = {
-        "students": Student.objects.count(),
-        "teachers": Teacher.objects.count(),
-        "open_remarks": Remark.objects.filter(resolved=False).count(),
-    }
-    recent_news = News.objects.all()[:2]
+    teacher = Teacher.objects.filter(user=request.user).select_related("user").first()
+    teacher_mode = bool(teacher)
 
-    # Teacher-блок (если директор реально преподаёт)
-    next_entry = next_dt = None
-    teacher_groups = Group.objects.none()
+    next_lesson = None
+    next_dt = None
+    groups = []
     my_open_remarks = 0
-    if teacher:
+
+    if teacher_mode:
+        now = _now_local()
+
         schedule_qs = (
-            ScheduleEntry.objects
-            .filter(teacher=teacher)
+            ScheduleEntry.objects.filter(teacher=teacher)
             .select_related("subject", "teacher__user", "group")
+            .order_by("weekday", "time_start")
         )
-        next_entry, next_dt = _find_next_lesson(schedule_qs, now)
-        teacher_groups = _teacher_groups_qs(teacher)
-        my_open_remarks = Remark.objects.filter(Q(teacher=teacher) | Q(author=request.user), resolved=False).count()
+        next_lesson, next_dt = _find_next_lesson(schedule_qs, now)
+        if next_lesson:
+            _patch_entry_group_code(next_lesson)
+
+        group_ids = schedule_qs.values_list("group_id", flat=True).distinct()
+        groups = list(Group.objects.filter(id__in=group_ids).order_by("code"))
+        for g in groups:
+            _patch_group_code(g)
+
+        my_open_remarks = Remark.objects.filter(
+            Q(resolved=False) & (Q(teacher=teacher) | Q(author=request.user))
+        ).count()
 
     context = {
         "director": director,
-        "stats": stats,
-        "news": recent_news,
-        "teacher_mode": bool(teacher),
-        "next_lesson": next_entry,
-        "next_lesson_start": next_dt,
-        "timestamp_ms": int(next_dt.timestamp() * 1000) if next_dt else 0,
-        "groups": teacher_groups,
+        "stats": {
+            "students": students_count,
+            "teachers": teachers_count,
+            "avg_gpa": float(avg_gpa),
+            "avg_attendance": f"{avg_att:.0f}%",
+            "open_remarks": open_remarks_all,
+        },
+        "news": news,
+        "teacher_mode": teacher_mode,
+        "teacher": teacher,
+        "teacher_groups": groups,
+        "teacher_next_lesson": next_lesson,
+        "teacher_next_lesson_start": next_dt,
+        "teacher_timestamp_ms": int(next_dt.timestamp() * 1000) if next_dt else 0,
         "my_open_remarks": my_open_remarks,
     }
     return render(request, "core/dashboard_admin.html", context)
 
 
-# =========================
+# -----------------------------
 # Pages
-# =========================
+# -----------------------------
 
 @login_required
 def schedule(request):
-    student, teacher, director = _profiles(request.user)
-    now = timezone.localtime()
+    now = _now_local()
 
-    # scope
-    base_qs = ScheduleEntry.objects.select_related("subject", "teacher__user", "group")
-
-    group_id = _safe_int(request.GET.get("group"))
-    if student:
-        qs = base_qs.filter(group=student.group)
-    elif teacher and not director:
-        qs = base_qs.filter(teacher=teacher)
+    if Student.objects.filter(user=request.user).exists():
+        student = Student.objects.select_related("group").get(user=request.user)
+        qs = ScheduleEntry.objects.filter(group=student.group)
+    elif Teacher.objects.filter(user=request.user).exists():
+        teacher = Teacher.objects.get(user=request.user)
+        qs = ScheduleEntry.objects.filter(teacher=teacher)
+    elif Director.objects.filter(user=request.user).exists():
+        qs = ScheduleEntry.objects.all()
     else:
-        # director: all (optional group filter)
-        qs = base_qs.all()
-        if group_id:
-            qs = qs.filter(group_id=group_id)
+        qs = ScheduleEntry.objects.none()
 
-    qs = qs.order_by("day_of_week", "time_start")
+    schedule_items = list(
+        qs.select_related("subject", "teacher__user", "group").order_by("weekday", "time_start")
+    )
+    for e in schedule_items:
+        _patch_entry_group_code(e)
 
-    next_entry, next_dt = _find_next_lesson(qs, now)
-
-    # Next lesson card (template expects next_lesson.target_ms + strings)
-    next_card = None
-    if next_entry and next_dt:
-        if teacher and not student:
-            teacher_label = f"Группа {next_entry.group.code}"
-        else:
-            tname = next_entry.teacher.user.get_full_name() or next_entry.teacher.user.username
-            teacher_label = tname
-
-        next_card = SimpleNamespace(
-            subject=next_entry.subject.name,
-            room=next_entry.location,
-            time=f"{next_entry.time_start} — {next_entry.time_end}",
-            teacher=teacher_label,
-            target_ms=int(next_dt.timestamp() * 1000),
-        )
-
-    # Table entries (template expects `entries`)
-    entries = []
-    for e in qs:
-        tname = e.teacher.user.get_full_name() or e.teacher.user.username
-        entries.append(
-            SimpleNamespace(
-                day_label=_weekday_label(e.day_of_week),
-                time=f"{e.time_start} — {e.time_end}",
-                subject=e.subject.name,
-                location=e.location,
-                teacher=tname if (student or director) else e.group.code,
-                badge="Пара",
-                badge_tone="good",
-            )
-        )
-
-    context = {
-        "next_lesson": next_card,
-        "entries": entries,
-    }
-    return render(request, "core/schedule.html", context)
-
-
-@login_required
-def rating(request):
-    student, teacher, director = _profiles(request.user)
-
-    groups = Group.objects.all().order_by("code")
-    selected_group_id = _safe_int(request.GET.get("group"))
-
-    # default group for students
-    if student and not selected_group_id:
-        selected_group_id = student.group_id
-
-    students_qs = Student.objects.select_related("user", "group")
-    if selected_group_id:
-        students_qs = students_qs.filter(group_id=selected_group_id)
-
-    students_qs = students_qs.order_by("-gpa", "-attendance", "user__last_name", "user__first_name")
-
-    students_list = list(students_qs[:200])  # safety cap
-    top3 = students_list[:3]
-
-    context = {
-        "groups": groups,
-        "selected_group_id": selected_group_id,
-        "students": students_list,
-        "top3": top3,
-    }
-    return render(request, "core/rating.html", context)
+    return render(request, "core/schedule.html", {"schedule": schedule_items, "now": now})
 
 
 @login_required
 def grades(request):
-    student, teacher, director = _profiles(request.user)
+    student = Student.objects.filter(user=request.user).first()
+    if not student:
+        return render(request, "core/grades.html", {"grades": []})
 
-    subject_id = _safe_int(request.GET.get("subject"))
-    group_id = _safe_int(request.GET.get("group"))
-
-    # Student mode
-    if student and not (teacher or director):
-        qs = Grade.objects.filter(student=student).select_related("subject")
-        if subject_id:
-            qs = qs.filter(subject_id=subject_id)
-
-        qs = qs.order_by("-created_at")
-
-        avg_grade = qs.aggregate(a=Avg("value")).get("a") or 0
-
-        # best/weak subject (by avg)
-        per_subject = (
-            Grade.objects.filter(student=student)
-            .values("subject__name")
-            .annotate(a=Avg("value"))
-            .order_by("-a")
-        )
-        best_subject = per_subject[0]["subject__name"] if per_subject else "—"
-        weak_subject = per_subject.reverse()[0]["subject__name"] if per_subject else "—"
-
-        subjects = (
-            Subject.objects.filter(grade__student=student).distinct().order_by("name")
-        )
-
-        context = {
-            "mode": "student",
-            "subjects": subjects,
-            "selected_subject_id": subject_id,
-            "avg_grade": float(avg_grade),
-            "best_subject": best_subject,
-            "weak_subject": weak_subject,
-            "attendance": student.attendance,
-            "grades": qs,
-        }
-        return render(request, "core/grades.html", context)
-
-    # Staff mode (teacher/director)
-    qs = Grade.objects.select_related("student__user", "student__group", "subject")
-    subjects = Subject.objects.all().order_by("name")
-    groups = Group.objects.all().order_by("code")
-
-    if teacher and not director:
-        # ограничиваем предметами учителя
-        qs = qs.filter(subject__in=teacher.subjects.all())
-        subjects = teacher.subjects.all().order_by("name")
-
-    if subject_id:
-        qs = qs.filter(subject_id=subject_id)
-    if group_id:
-        qs = qs.filter(student__group_id=group_id)
-
-    qs = qs.order_by("-created_at")
-
-    context = {
-        "mode": "staff",
-        "subjects": subjects,
-        "groups": groups,
-        "selected_subject_id": subject_id,
-        "selected_group_id": group_id,
-        "grades": qs[:300],
-    }
-    return render(request, "core/grades.html", context)
+    grades_qs = Grade.objects.filter(student=student).select_related("subject").order_by("-created_at")
+    return render(request, "core/grades.html", {"grades": grades_qs})
 
 
 @login_required
 def homeworks(request):
-    student, teacher, director = _profiles(request.user)
+    user = request.user
 
-    # Student: own tasks with toggle
-    if student and not (teacher or director):
-        qs = (
-            Homework.objects
-            .filter(student=student)
-            .select_related("subject")
-            .order_by("completed", "deadline")
+    student = Student.objects.filter(user=user).first()
+    teacher = Teacher.objects.filter(user=user).first()
+    director = Director.objects.filter(user=user).first()
+
+    if student:
+        qs = Homework.objects.filter(student=student).select_related(
+            "subject", "student__user", "student__group"
         )
+        items = list(qs.order_by("completed", "deadline"))
+        for hw in items:
+            hw.own = True
+            _patch_group_code(hw.student.group)
+        return render(request, "core/homeworks.html", {"homeworks": items})
 
-        total = qs.count()
-        done = qs.filter(completed=True).count()
-        pending = total - done
+    if teacher:
+        subj_ids = teacher.subjects.values_list("id", flat=True)
+        qs = Homework.objects.filter(subject_id__in=subj_ids).select_related(
+            "subject", "student__user", "student__group"
+        )
+        items = list(qs.order_by("-deadline")[:80])
+        for hw in items:
+            hw.own = False
+            _patch_group_code(hw.student.group)
+        return render(request, "core/homeworks.html", {"homeworks": items})
 
-        context = {
-            "mode": "student",
-            "allow_toggle": True,
-            "homeworks": qs[:200],
-            "total_count": total,
-            "completed_count": done,
-            "pending_count": pending,
-        }
-        return render(request, "core/homeworks.html", context)
+    if director:
+        qs = Homework.objects.all().select_related("subject", "student__user", "student__group")
+        items = list(qs.order_by("-deadline")[:120])
+        for hw in items:
+            hw.own = False
+            _patch_group_code(hw.student.group)
+        return render(request, "core/homeworks.html", {"homeworks": items})
 
-    # Staff: overview (read-only)
-    qs = Homework.objects.select_related("student__user", "student__group", "subject")
-    if teacher and not director:
-        qs = qs.filter(subject__in=teacher.subjects.all())
-
-    qs = qs.order_by("completed", "deadline", "-created_at")
-
-    total = qs.count()
-    done = qs.filter(completed=True).count()
-    pending = total - done
-
-    context = {
-        "mode": "staff",
-        "allow_toggle": False,
-        "homeworks": qs[:300],
-        "total_count": total,
-        "completed_count": done,
-        "pending_count": pending,
-    }
-    return render(request, "core/homeworks.html", context)
+    return render(request, "core/homeworks.html", {"homeworks": []})
 
 
 @login_required
 def remarks(request):
-    student, teacher, director = _profiles(request.user)
+    user = request.user
 
-    status = (request.GET.get("status") or "open").strip()  # open|resolved|all
-    level = (request.GET.get("level") or "all").strip()     # INFO|WARN|CRITICAL|all
+    student = Student.objects.filter(user=user).first()
+    teacher = Teacher.objects.filter(user=user).first()
+    director = Director.objects.filter(user=user).first()
 
-    qs = Remark.objects.select_related("student__user", "student__group", "teacher__user", "author")
-
-    if student and not (teacher or director):
-        qs = qs.filter(student=student)
-    elif teacher and not director:
-        qs = qs.filter(Q(teacher=teacher) | Q(author=request.user))
+    if student:
+        qs = Remark.objects.filter(student=student)
+    elif teacher:
+        qs = Remark.objects.filter(teacher=teacher)
+    elif director:
+        qs = Remark.objects.all()
     else:
-        qs = qs.all()
+        qs = Remark.objects.none()
 
-    if status == "open":
-        qs = qs.filter(resolved=False)
-    elif status == "resolved":
-        qs = qs.filter(resolved=True)
+    qs = qs.select_related("student__user", "student__group", "teacher__user").order_by("-created_at")[:120]
 
-    if level in {"INFO", "WARN", "CRITICAL"}:
-        qs = qs.filter(level=level)
+    items = []
+    for r in qs:
+        _patch_group_code(r.student.group)
+        items.append(_normalize_remark(r))
 
-    open_count = qs.filter(resolved=False).count() if status == "all" else (
-        Remark.objects.filter(resolved=False).count() if (director or teacher) else Remark.objects.filter(student=student, resolved=False).count()
+    return render(request, "core/remarks.html", {"remarks": items})
+
+
+@login_required
+def rating(request):
+    students = list(
+        Student.objects.select_related("user", "group").order_by("-gpa", "-attendance", "user__username")
     )
+    for s in students:
+        _patch_group_code(s.group)
 
-    context = {
-        "remarks": qs.order_by("resolved", "-created_at")[:300],
-        "open_count": open_count,
-        "status": status,
-        "level": level,
-    }
-    return render(request, "core/remarks.html", context)
+    rating_list = [(i + 1, s) for i, s in enumerate(students)]
+    return render(request, "core/rating.html", {"rating": rating_list, "user": request.user})
 
 
 @login_required
 def notifications(request):
-    notes = Notification.objects.filter(user=request.user).order_by("is_read", "-created_at")[:200]
+    notes = Notification.objects.filter(user=request.user).order_by("-created_at")[:200]
     return render(request, "core/notifications.html", {"notifications": notes})
 
 
 @login_required
 def news_list(request):
-    return render(request, "core/news_list.html", {"items": News.objects.all()[:30]})
+    news_items = _patch_news_alias(News.objects.order_by("-created_at")[:200])
+    return render(request, "core/news_list.html", {"news_list": news_items})
 
 
 @login_required
@@ -570,31 +472,136 @@ def settings_view(request):
     return render(request, "core/settings.html")
 
 
-# =========================
+# -----------------------------
 # APIs
-# =========================
+# -----------------------------
 
+@require_POST
 @login_required
-def api_toggle_homework(request, hw_id: int):
-    if request.method != "POST":
-        return JsonResponse({"ok": False, "error": "POST required"}, status=405)
-
-    hw = get_object_or_404(Homework, id=hw_id)
-    if hw.student.user_id != request.user.id:
-        return HttpResponseForbidden("Forbidden")
-
-    hw.completed = not hw.completed
-    hw.save(update_fields=["completed"])
-    return JsonResponse({"ok": True, "completed": hw.completed})
+def api_toggle_homework(request, pk: int):
+    try:
+        can_toggle_homework(request.user, pk)
+        hw = get_object_or_404(Homework, pk=pk)
+        hw.completed = not hw.completed
+        hw.save(update_fields=["completed"])
+        return JsonResponse({"ok": True, "completed": hw.completed})
+    except Exception as e:
+        return JsonResponse({"ok": False, "error": str(e)}, status=403)
 
 
+@require_POST
 @login_required
-def api_mark_notification_read(request, notif_id: int):
-    if request.method != "POST":
-        return JsonResponse({"ok": False, "error": "POST required"}, status=405)
+def api_mark_notification_read(request, pk: int):
+    note = Notification.objects.filter(pk=pk, user=request.user).first()
+    if not note:
+        return JsonResponse({"ok": False, "error": "Not found"}, status=404)
 
-    n = get_object_or_404(Notification, id=notif_id, user=request.user)
-    if not n.is_read:
-        n.is_read = True
-        n.save(update_fields=["is_read"])
-    return JsonResponse({"ok": True})
+    if not note.is_read:
+        note.is_read = True
+        note.save(update_fields=["is_read"])
+
+    unread = Notification.objects.filter(user=request.user, is_read=False).count()
+    return JsonResponse({"ok": True, "unread_count": unread})
+
+
+# -----------------------------
+# Compatibility aliases (под твой core/urls.py)
+# -----------------------------
+
+@require_POST
+@login_required
+def homework_toggle_api(request, hw_id: int):
+    return api_toggle_homework(request, pk=hw_id)
+
+
+@require_POST
+@login_required
+def notification_read_api(request, notification_id: int):
+    return api_mark_notification_read(request, pk=notification_id)
+
+
+@require_POST
+@login_required
+def mark_notification_read_api(request, pk: int):
+    return api_mark_notification_read(request, pk=pk)
+
+
+# Pages aliases (если urls ждёт другие имена)
+def schedule_view(request):
+    return schedule(request)
+
+
+def grades_view(request):
+    return grades(request)
+
+
+def homeworks_view(request):
+    return homeworks(request)
+
+
+def remarks_view(request):
+    return remarks(request)
+
+
+def rating_view(request):
+    return rating(request)
+
+
+def notifications_view(request):
+    return notifications(request)
+
+
+def news_view(request):
+    return news_list(request)
+
+
+def settings_page(request):
+    return settings_view(request)
+
+
+def schedule_page(request):
+    return schedule(request)
+
+
+def grades_page(request):
+    return grades(request)
+
+
+def homeworks_page(request):
+    return homeworks(request)
+
+
+def remarks_page(request):
+    return remarks(request)
+
+
+def rating_page(request):
+    return rating(request)
+
+
+def notifications_page(request):
+    return notifications(request)
+
+
+def news_list_view(request):
+    return news_list(request)
+
+
+# -----------------------------
+# Error pages
+# -----------------------------
+
+def error_400(request, exception):
+    return render(request, "core/errors/400.html", status=400)
+
+
+def error_403(request, exception):
+    return render(request, "core/errors/403.html", status=403)
+
+
+def error_404(request, exception):
+    return render(request, "core/errors/404.html", status=404)
+
+
+def error_500(request):
+    return render(request, "core/errors/500.html", status=500)

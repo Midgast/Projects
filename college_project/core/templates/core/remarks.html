@@ -15,46 +15,74 @@
       <header class="card-h">
         <div>
           <div class="kicker">Цифровая система</div>
-          <h2 class="h2">Замечания</h2>
+          <h2 class="h2">Замечания и дисциплина</h2>
         </div>
-
-        <div class="pill">
-          Открытые: <strong style="margin-left:6px">{{ open_count|default:"—" }}</strong>
+        <div class="pill subtle">
+          Открытых: <strong style="margin-left:6px">{{ open_count|default:0 }}</strong>
         </div>
       </header>
 
       <div class="card-b">
         <div class="split">
           <div class="block">
-            <div class="label">Статус</div>
-            <div class="big">
-              {% if open_count|default:0 %}
-                Требуют внимания
-              {% else %}
-                Всё спокойно
-              {% endif %}
+            <div class="label">Как это работает</div>
+            <div class="muted">
+              Замечания фиксируются в системе, имеют уровень и статус. Студент видит только свои. Преподаватель — свои/созданные.
+              Директор — все.
             </div>
           </div>
-
           <div class="block">
-            <div class="label">Правило</div>
-            <div class="muted">
-              Замечания фиксируются преподавателями и могут быть закрыты (resolved) через админку.
+            <div class="label">Быстрые действия</div>
+            <div class="metric-value">
+              <a class="btn" href="/admin/core/remark/add/">Добавить</a>
+              <a class="btn ghost" href="/admin/core/remark/">Админка</a>
             </div>
           </div>
         </div>
 
         <div class="divider"></div>
 
+        <div class="grid2">
+          <div class="metric">
+            <div class="metric-label">Статус</div>
+            <div class="metric-value">
+              {% if status == "open" %}<span class="pill mini danger">Открытые</span>{% endif %}
+              {% if status == "resolved" %}<span class="pill mini">Решённые</span>{% endif %}
+              {% if status == "all" %}<span class="pill mini subtle">Все</span>{% endif %}
+            </div>
+          </div>
+          <div class="metric">
+            <div class="metric-label">Уровень</div>
+            <div class="metric-value">
+              {% if level == "INFO" %}<span class="pill mini">INFO</span>{% endif %}
+              {% if level == "WARN" %}<span class="pill mini warn">WARN</span>{% endif %}
+              {% if level == "CRITICAL" %}<span class="pill mini danger">CRITICAL</span>{% endif %}
+              {% if level == "all" %}<span class="pill mini subtle">Все</span>{% endif %}
+            </div>
+          </div>
+        </div>
+      </div>
+    </article>
+
+    <!-- Filters -->
+    <article class="card bento-small tilt" data-tilt>
+      <header class="card-h">
+        <div>
+          <div class="kicker">Фильтр</div>
+          <h2 class="h2">Сортировка</h2>
+        </div>
+      </header>
+
+      <div class="card-b">
         <form method="get" class="form">
           <select class="input" name="status">
-            <option value="" {% if not status %}selected{% endif %}>Все</option>
-            <option value="open" {% if status == "open" %}selected{% endif %}>Только открытые</option>
-            <option value="closed" {% if status == "closed" %}selected{% endif %}>Только закрытые</option>
+            <option value="open" {% if status == "open" %}selected{% endif %}>Открытые</option>
+            <option value="resolved" {% if status == "resolved" %}selected{% endif %}>Решённые</option>
+            <option value="all" {% if status == "all" %}selected{% endif %}>Все</option>
           </select>
 
           <select class="input" name="level">
-            <option value="" {% if not level %}selected{% endif %}>Все уровни</option>
+            <option value="all" {% if level == "all" %}selected{% endif %}>Все уровни</option>
             <option value="INFO" {% if level == "INFO" %}selected{% endif %}>INFO</option>
             <option value="WARN" {% if level == "WARN" %}selected{% endif %}>WARN</option>
             <option value="CRITICAL" {% if level == "CRITICAL" %}selected{% endif %}>CRITICAL</option>
@@ -62,104 +90,77 @@
 
           <button class="btn" type="submit">Применить</button>
         </form>
+
+        <div class="hint">
+          Открытые замечания требуют внимания. Решённые остаются в истории.
+        </div>
       </div>
     </article>
 
-    <!-- List -->
+    <!-- Table -->
     <article class="card bento-wide tilt" data-tilt>
       <header class="card-h">
         <div>
-          <div class="kicker">Лента</div>
-          <h2 class="h2">
-            {% if request.user.teacher %}Замечания по студентам{% else %}Мои замечания{% endif %}
-          </h2>
+          <div class="kicker">Журнал</div>
+          <h2 class="h2">Список замечаний</h2>
         </div>
-        <div class="pill subtle">
-          Всего: {{ remarks|length|default:0 }}
-        </div>
+        <div class="pill subtle">Показано: {{ remarks|length|default:0 }}</div>
       </header>
 
       <div class="card-b">
         {% if remarks %}
-          <div class="list">
+          <div class="table remarks-table">
+            <div class="tr th">
+              <div class="td">Дата</div>
+              <div class="td">Уровень</div>
+              <div class="td">Статус</div>
+              <div class="td">Студент</div>
+              <div class="td">Группа</div>
+              <div class="td">Текст</div>
+              <div class="td">Кто</div>
+            </div>
+
             {% for r in remarks %}
-              <div class="list-item {% if r.resolved %}is-done{% endif %}">
-                <div class="check {% if r.resolved %}on{% endif %}">
-                  {% if r.resolved %}✓{% else %}&nbsp;{% endif %}
-                </div>
+              <div class="tr {% if not r.resolved %}active-row{% endif %}">
+                <div class="td">{{ r.created_at|date:"d.m.Y H:i"|default:"—" }}</div>
 
-                <div class="list-main">
-                  <div class="list-title">
-                    <span class="pill mini {% if r.level == 'CRITICAL' %}danger{% elif r.level == 'WARN' %}warn{% else %}subtle{% endif %}">
-                      {{ r.level|default:"INFO" }}
-                    </span>
-                    <span style="margin-left:10px">{{ r.text|default:"—" }}</span>
-                  </div>
-
-                  <div class="list-sub">
-                    {% if request.user.teacher %}
-                      Студент:
-                      <strong>
-                        {{ r.student.user.username|default:"—" }}
-                      </strong>
-                      <span class="sep">·</span>
-                    {% endif %}
-
-                    Преподаватель:
-                    <strong>
-                      {% if r.teacher %}
-                        {{ r.teacher.user.username|default:"—" }}
-                      {% else %}
-                        —
-                      {% endif %}
-                    </strong>
-
-                    <span class="sep">·</span>
-
-                    Дата:
-                    <strong>{{ r.created_at|date:"d.m.Y H:i"|default:"—" }}</strong>
-
-                    <span class="sep">·</span>
-
-                    Статус:
-                    <strong>{% if r.resolved %}Закрыто{% else %}Открыто{% endif %}</strong>
-                  </div>
-                </div>
-
-                <div class="list-actions">
-                  {% if request.user.is_staff %}
-                    <a class="btn ghost" href="/admin/core/remark/{{ r.id }}/change/">Открыть в админке</a>
+                <div class="td">
+                  {% if r.level == "CRITICAL" %}
+                    <span class="pill mini danger">CRITICAL</span>
+                  {% elif r.level == "WARN" %}
+                    <span class="pill mini warn">WARN</span>
                   {% else %}
-                    <span class="pill mini {% if r.resolved %}subtle{% else %}warn{% endif %}">
-                      {% if r.resolved %}OK{% else %}В работе{% endif %}
-                    </span>
+                    <span class="pill mini">INFO</span>
+                  {% endif %}
+                </div>
+
+                <div class="td">
+                  {% if r.resolved %}
+                    <span class="pill mini">Решено</span>
+                  {% else %}
+                    <span class="pill mini subtle">Открыто</span>
+                  {% endif %}
+                </div>
+
+                <div class="td">{{ r.student.user.get_full_name|default:r.student.user.username|default:"—" }}</div>
+                <div class="td">{{ r.student.group.code|default:"—" }}</div>
+                <div class="td">{{ r.text|default:"—" }}</div>
+
+                <div class="td">
+                  {% if r.teacher %}
+                    {{ r.teacher.user.get_full_name|default:r.teacher.user.username }}
+                  {% elif r.author %}
+                    {{ r.author.get_full_name|default:r.author.username }}
+                  {% else %}
+                    —
                   {% endif %}
                 </div>
               </div>
             {% endfor %}
           </div>
         {% else %}
-          <div class="empty">
-            Замечаний пока нет. Если ты преподаватель — добавь через админку <code>Remarks</code>.
-          </div>
+          <div class="empty">Замечаний нет по выбранным фильтрам.</div>
         {% endif %}
-      </div>
-    </article>
-
-    <!-- Hint -->
-    <article class="card bento-small tilt" data-tilt>
-      <header class="card-h">
-        <div>
-          <div class="kicker">Подсказка</div>
-          <h2 class="h2">Как закрывать</h2>
-        </div>
-      </header>
-      <div class="card-b">
-        <ol class="steps">
-          <li>Зайди в <span class="mono">/admin/</span></li>
-          <li>Открой <span class="mono">Remarks</span></li>
-          <li>Поставь <span class="mono">resolved</span> и сохрани</li>
-        </ol>
       </div>
     </article>
 

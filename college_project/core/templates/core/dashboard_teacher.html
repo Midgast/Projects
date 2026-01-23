@@ -1,165 +1,199 @@
 {% extends "core/dashboard_base.html" %}
 
-{% block title %}Преподаватель — College Core{% endblock %}
+{% block title %}Преподаватель — Dashboard{% endblock %}
 
 {% block topbar_left %}
-  <div class="crumbs">Преподаватель</div>
+  <div class="crumbs">Преподаватель • {{ profile.department|default:"Кафедра" }}</div>
 {% endblock %}
 
 {% block content %}
 <section class="page">
   <div class="bento">
 
-    <!-- Next lesson -->
+    <!-- Overview (BIG) -->
     <article class="card bento-big tilt" data-tilt>
       <header class="card-h">
         <div>
-          <div class="kicker">Работа</div>
+          <div class="kicker">Кабинет преподавателя</div>
+          <h2 class="h2">Рабочая панель</h2>
+        </div>
+        <span class="pill subtle">Открытых замечаний: <strong style="margin-left:6px">{{ open_remarks|default:0 }}</strong></span>
+      </header>
+
+      <div class="card-b">
+        <div class="grid3">
+          <div class="metric">
+            <div class="metric-label">Группы</div>
+            <div class="metric-value">{{ groups|length }}</div>
+          </div>
+          <div class="metric">
+            <div class="metric-label">Предметы</div>
+            <div class="metric-value">{{ profile.subjects.all|length }}</div>
+          </div>
+          <div class="metric">
+            <div class="metric-label">Статус</div>
+            <div class="metric-value">Active</div>
+          </div>
+        </div>
+
+        <div class="divider"></div>
+
+        <div class="split">
+          <div class="block">
+            <div class="label">Быстрые действия</div>
+            <div class="actions">
+              <a class="btn" href="/schedule/">Расписание</a>
+              <a class="btn ghost" href="/grades/">Оценки</a>
+              <a class="btn ghost" href="/homeworks/">Домашки</a>
+              <a class="btn ghost" href="/remarks/">Замечания</a>
+            </div>
+          </div>
+
+          <div class="block">
+            <div class="label">Мои предметы</div>
+            <div class="chips">
+              {% for s in profile.subjects.all %}
+                <span class="pill mini subtle">{{ s.name }}</span>
+              {% empty %}
+                <span class="pill mini subtle">Не назначены</span>
+              {% endfor %}
+            </div>
+            <div class="muted" style="margin-top:10px">
+              Оценки и домашки показываются только по вашим предметам.
+            </div>
+          </div>
+        </div>
+      </div>
+    </article>
+
+    <!-- Next lesson (MEDIUM) -->
+    <article class="card bento-small tilt" data-tilt>
+      <header class="card-h">
+        <div>
+          <div class="kicker">Фокус</div>
           <h2 class="h2">Следующая пара</h2>
         </div>
-        <div class="pill subtle">Расписание</div>
+        <span class="pill mini subtle" id="countdownPill">—</span>
       </header>
 
       <div class="card-b">
         {% if next_lesson %}
-          <div class="split">
-            <div class="block">
-              <div class="label">Предмет</div>
-              <div class="big">{{ next_lesson.subject.name }}</div>
-              <div class="muted" style="margin-top:8px">
-                Группа: <strong>{{ next_lesson.group.code }}</strong>
-                <span class="sep">·</span>
-                Кабинет: <strong>{{ next_lesson.location }}</strong>
-              </div>
-            </div>
-
-            <div class="block">
-              <div class="label">Время</div>
-              <div class="big">{{ next_lesson.time_start }} — {{ next_lesson.time_end }}</div>
-              <div class="pill mini subtle" style="margin-top:10px" data-countdown data-target-ms="{{ timestamp_ms }}">
-                <span class="muted">до начала:</span> <strong data-countdown-text>—</strong>
-              </div>
+          <div class="row">
+            <div class="label">Предмет</div>
+            <div class="value">{{ next_lesson.subject.name|default:"—" }}</div>
+          </div>
+          <div class="row">
+            <div class="label">Группа</div>
+            <div class="value">{{ next_lesson.group.code|default:"—" }}</div>
+          </div>
+          <div class="row">
+            <div class="label">Кабинет</div>
+            <div class="value">{{ next_lesson.location|default:"—" }}</div>
+          </div>
+          <div class="row">
+            <div class="label">Время</div>
+            <div class="value">
+              {{ next_lesson.time_start|time:"H:i" }}–{{ next_lesson.time_end|time:"H:i" }}
             </div>
           </div>
+
+          <div id="nextLessonTs" data-ts="{{ timestamp_ms|default:0 }}"></div>
 
           <div class="divider"></div>
-
-          <div class="metric">
-            <div class="metric-label">Быстрые действия</div>
-            <div class="metric-value">
-              <a class="btn" href="/schedule/">Открыть расписание</a>
-              <a class="btn ghost" href="/grades/">Журнал оценок</a>
-              <a class="btn ghost" href="/remarks/">Замечания</a>
-            </div>
-          </div>
+          <div class="muted">Таймер считает до начала пары (локальное время).</div>
         {% else %}
-          <div class="empty">
-            На ближайшее время пар нет. Проверь ScheduleEntry в админке.
-          </div>
-          <div style="margin-top:12px">
-            <a class="btn ghost" href="/admin/core/scheduleentry/">Открыть ScheduleEntry</a>
-          </div>
+          <div class="empty">Нет ближайшей пары.</div>
         {% endif %}
       </div>
     </article>
 
-    <!-- Groups -->
-    <article class="card bento-tall tilt" data-tilt>
+    <!-- Groups (MEDIUM) -->
+    <article class="card bento-small tilt" data-tilt>
       <header class="card-h">
         <div>
-          <div class="kicker">Классы</div>
+          <div class="kicker">Контекст</div>
           <h2 class="h2">Мои группы</h2>
         </div>
-        <div class="pill">{{ groups|length|default:0 }}</div>
+        <a class="btn ghost" href="/schedule/">Открыть</a>
       </header>
 
       <div class="card-b">
         {% if groups %}
           <div class="chips">
             {% for g in groups %}
-              <span class="chip">{{ g.code }}</span>
+              <span class="pill mini subtle">{{ g.code }}</span>
             {% endfor %}
           </div>
-
           <div class="divider"></div>
-
-          <div class="hint">
-            Для управления расписанием, оценками и домашками — используй админку или соответствующие страницы.
-          </div>
-
-          <div style="margin-top:12px">
-            <a class="btn ghost" href="/admin/">Админка</a>
-            <a class="btn ghost" href="/homeworks/">Домашки</a>
-          </div>
+          <div class="muted">Список формируется из расписания (ScheduleEntry).</div>
         {% else %}
-          <div class="empty">
-            У преподавателя нет групп. Назначь пары через ScheduleEntry.
-          </div>
+          <div class="empty">Группы не найдены. Проверь расписание.</div>
         {% endif %}
       </div>
     </article>
 
-    <!-- Remarks / status -->
-    <article class="card bento-small tilt" data-tilt>
-      <header class="card-h">
-        <div>
-          <div class="kicker">Контроль</div>
-          <h2 class="h2">Замечания</h2>
-        </div>
-      </header>
-      <div class="card-b">
-        <div class="metric">
-          <div class="metric-label">Открытых (моих)</div>
-          <div class="metric-value">{{ open_remarks|default:"0" }}</div>
-        </div>
-
-        <div class="divider"></div>
-
-        <div class="metric">
-          <div class="metric-label">Перейти</div>
-          <div class="metric-value">
-            <a class="btn" href="/remarks/">Открыть</a>
-            <a class="btn ghost" href="/admin/core/remark/">Админка</a>
-          </div>
-        </div>
-      </div>
-    </article>
-
-    <!-- News -->
+    <!-- News (WIDE) -->
     <article class="card bento-wide tilt" data-tilt>
       <header class="card-h">
         <div>
-          <div class="kicker">Инфо</div>
-          <h2 class="h2">Новости</h2>
+          <div class="kicker">Новости</div>
+          <h2 class="h2">Актуальное</h2>
         </div>
         <a class="btn ghost" href="/news/">Все</a>
       </header>
 
       <div class="card-b">
         {% if news %}
-          <div class="news-strip">
+          <div class="news-grid">
             {% for n in news %}
-              <a class="news-card" href="/news/">
-                <div class="news-img">
-                  {% if n.image %}
-                    <img src="{{ n.image.url }}" alt="">
-                  {% else %}
-                    <div class="news-ph"></div>
-                  {% endif %}
-                </div>
-                <div class="news-body">
+              <a class="news-item" href="/news/" aria-label="{{ n.title }}">
+                {% if n.image %}
+                  <img class="news-img" src="{{ n.image.url }}" alt="{{ n.title }}">
+                {% endif %}
+                <div class="news-meta">
                   <div class="news-title">{{ n.title }}</div>
-                  <div class="news-sub muted">{{ n.text|truncatechars:120 }}</div>
+                  <div class="news-text">{{ n.text|truncatechars:120 }}</div>
                 </div>
               </a>
             {% endfor %}
           </div>
         {% else %}
-          <div class="empty">Новостей пока нет.</div>
+          <div class="empty">Пока нет новостей.</div>
         {% endif %}
       </div>
     </article>
 
   </div>
 </section>
+
+<script>
+(() => {
+  const holder = document.getElementById("nextLessonTs");
+  const pill = document.getElementById("countdownPill");
+  if (!holder || !pill) return;
+
+  const ts = Number(holder.dataset.ts || "0");
+  if (!ts) { pill.textContent = "—"; return; }
+
+  function fmt(ms) {
+    const s = Math.max(0, Math.floor(ms / 1000));
+    const m = Math.floor(s / 60);
+    const h = Math.floor(m / 60);
+    const mm = m % 60;
+    const ss = s % 60;
+    if (h > 0) return `${h}ч ${mm}м`;
+    if (m > 0) return `${m}м ${ss}с`;
+    return `${ss}с`;
+  }
+
+  function tick() {
+    const left = ts - Date.now();
+    if (left <= 0) { pill.textContent = "Сейчас"; return; }
+    pill.textContent = `через ${fmt(left)}`;
+    requestAnimationFrame(() => setTimeout(tick, 250));
+  }
+
+  tick();
+})();
+</script>
 {% endblock %}

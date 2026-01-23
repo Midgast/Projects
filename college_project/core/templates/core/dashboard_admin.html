@@ -1,175 +1,227 @@
 {% extends "core/dashboard_base.html" %}
 
-{% block title %}Директор — College Core{% endblock %}
+{% block title %}Директор — Dashboard{% endblock %}
 
 {% block topbar_left %}
-  <div class="crumbs">Директор</div>
+  <div class="crumbs">Директор • Обзор системы</div>
 {% endblock %}
 
 {% block content %}
 <section class="page">
   <div class="bento">
 
-    <!-- System overview -->
+    <!-- System Overview (BIG) -->
     <article class="card bento-big tilt" data-tilt>
       <header class="card-h">
         <div>
-          <div class="kicker">Система</div>
-          <h2 class="h2">Обзор колледжа</h2>
+          <div class="kicker">Администрирование</div>
+          <h2 class="h2">Состояние колледжа</h2>
         </div>
-        <div class="pill subtle">Администрирование</div>
+        <div class="pill subtle">
+          Открытых замечаний: <strong style="margin-left:6px">{{ stats.open_remarks|default:0 }}</strong>
+        </div>
       </header>
 
       <div class="card-b">
-        <div class="grid2">
+        <div class="grid3">
           <div class="metric">
-            <div class="metric-label">Студентов</div>
-            <div class="metric-value">{{ stats.students|default:"—" }}</div>
+            <div class="metric-label">Студенты</div>
+            <div class="metric-value">{{ stats.students|default:0 }}</div>
           </div>
           <div class="metric">
-            <div class="metric-label">Преподавателей</div>
-            <div class="metric-value">{{ stats.teachers|default:"—" }}</div>
+            <div class="metric-label">Преподаватели</div>
+            <div class="metric-value">{{ stats.teachers|default:0 }}</div>
+          </div>
+          <div class="metric">
+            <div class="metric-label">Открытые замечания</div>
+            <div class="metric-value">{{ stats.open_remarks|default:0 }}</div>
           </div>
         </div>
 
         <div class="divider"></div>
 
-        <div class="grid2">
-          <div class="metric">
-            <div class="metric-label">Открытых замечаний</div>
-            <div class="metric-value">{{ stats.open_remarks|default:"—" }}</div>
-          </div>
-          <div class="metric">
-            <div class="metric-label">Быстрые действия</div>
-            <div class="metric-value">
+        <div class="split">
+          <div class="block">
+            <div class="label">Быстрые действия</div>
+            <div class="actions">
               <a class="btn" href="/admin/">Админка</a>
               <a class="btn ghost" href="/remarks/">Замечания</a>
+              <a class="btn ghost" href="/grades/">Оценки</a>
+              <a class="btn ghost" href="/homeworks/">Домашки</a>
+              <a class="btn ghost" href="/schedule/">Расписание</a>
+            </div>
+          </div>
+
+          <div class="block">
+            <div class="label">Контроль качества</div>
+            <div class="muted">
+              Директор видит систему целиком. Если у директора есть профиль преподавателя — ниже появится блок “Режим преподавателя”
+              (твои пары, группы и личные замечания).
             </div>
           </div>
         </div>
-
-        <div class="hint">
-          Директор управляет данными через админку. В интерфейсе — только важные сводки и контрольные страницы.
-        </div>
       </div>
     </article>
 
-    <!-- Teacher mode (optional) -->
-    {% if teacher_mode %}
-    <article class="card bento-tall tilt" data-tilt>
-      <header class="card-h">
-        <div>
-          <div class="kicker">Роль</div>
-          <h2 class="h2">Преподаватель</h2>
-        </div>
-        <div class="pill">Teacher-mode</div>
-      </header>
-
-      <div class="card-b">
-        <div class="metric">
-          <div class="metric-label">Мои открытые замечания</div>
-          <div class="metric-value">{{ my_open_remarks|default:"0" }}</div>
-        </div>
-
-        <div class="divider"></div>
-
-        <div class="metric">
-          <div class="metric-label">Следующая пара</div>
-          <div class="metric-value">
-            {% if next_lesson %}
-              <div style="font-weight:800">{{ next_lesson.subject.name }}</div>
-              <div class="muted" style="margin-top:6px">
-                {{ next_lesson.group.code }} · {{ next_lesson.time_start }}—{{ next_lesson.time_end }} · {{ next_lesson.location }}
-              </div>
-              <div class="pill mini subtle" style="margin-top:10px" data-countdown data-target-ms="{{ timestamp_ms }}">
-                <span class="muted">до начала:</span> <strong data-countdown-text>—</strong>
-              </div>
-            {% else %}
-              <span class="muted">Пары не найдены</span>
-            {% endif %}
-          </div>
-        </div>
-
-        <div class="divider"></div>
-
-        <div class="metric">
-          <div class="metric-label">Мои группы</div>
-          <div class="metric-value">
-            {% if groups %}
-              <div class="chips">
-                {% for g in groups %}
-                  <span class="chip">{{ g.code }}</span>
-                {% endfor %}
-              </div>
-            {% else %}
-              <span class="muted">Нет закреплённых групп</span>
-            {% endif %}
-          </div>
-        </div>
-
-        <div class="divider"></div>
-
-        <div class="metric">
-          <div class="metric-label">Быстрые ссылки</div>
-          <div class="metric-value">
-            <a class="btn ghost" href="/schedule/">Расписание</a>
-            <a class="btn ghost" href="/grades/">Журнал</a>
-            <a class="btn ghost" href="/homeworks/">Домашки</a>
-          </div>
-        </div>
-      </div>
-    </article>
-    {% else %}
+    <!-- Teacher mode (MEDIUM) -->
     <article class="card bento-small tilt" data-tilt>
       <header class="card-h">
         <div>
           <div class="kicker">Роль</div>
-          <h2 class="h2">Преподавание</h2>
+          <h2 class="h2">Режим преподавателя</h2>
         </div>
+        {% if teacher_mode %}
+          <span class="pill mini">Включен</span>
+        {% else %}
+          <span class="pill mini subtle">Нет профиля</span>
+        {% endif %}
       </header>
+
       <div class="card-b">
-        <div class="empty">
-          У этого директора нет профиля преподавателя. Если нужно — создай Teacher-профиль на этого пользователя в админке.
-        </div>
+        {% if teacher_mode %}
+          <div class="metric">
+            <div class="metric-label">Мои открытые замечания</div>
+            <div class="metric-value">{{ my_open_remarks|default:0 }}</div>
+          </div>
+
+          <div class="divider"></div>
+
+          <div class="label">Мои группы</div>
+          {% if groups %}
+            <div class="chips">
+              {% for g in groups %}
+                <span class="pill mini subtle">{{ g.code }}</span>
+              {% endfor %}
+            </div>
+          {% else %}
+            <div class="empty">Группы не найдены.</div>
+          {% endif %}
+        {% else %}
+          <div class="empty">
+            Профиль преподавателя не привязан. Создай Teacher для этого пользователя в админке.
+          </div>
+          <div style="margin-top:10px">
+            <a class="btn ghost" href="/admin/core/teacher/add/">Создать Teacher</a>
+          </div>
+        {% endif %}
       </div>
     </article>
-    {% endif %}
 
-    <!-- News -->
+    <!-- Next lesson (MEDIUM) -->
+    <article class="card bento-small tilt" data-tilt>
+      <header class="card-h">
+        <div>
+          <div class="kicker">Фокус</div>
+          <h2 class="h2">Следующая пара</h2>
+        </div>
+        <span class="pill mini subtle" id="countdownPill">—</span>
+      </header>
+
+      <div class="card-b">
+        {% if teacher_mode and next_lesson %}
+          <div class="row">
+            <div class="label">Предмет</div>
+            <div class="value">{{ next_lesson.subject.name|default:"—" }}</div>
+          </div>
+          <div class="row">
+            <div class="label">Группа</div>
+            <div class="value">{{ next_lesson.group.code|default:"—" }}</div>
+          </div>
+          <div class="row">
+            <div class="label">Кабинет</div>
+            <div class="value">{{ next_lesson.location|default:"—" }}</div>
+          </div>
+          <div class="row">
+            <div class="label">Время</div>
+            <div class="value">
+              {{ next_lesson.time_start|time:"H:i" }}–{{ next_lesson.time_end|time:"H:i" }}
+            </div>
+          </div>
+
+          <div class="divider"></div>
+
+          <div class="muted">
+            Таймер считает до начала пары (локальное время).
+          </div>
+
+          <div id="nextLessonTs" data-ts="{{ timestamp_ms|default:0 }}"></div>
+        {% else %}
+          <div class="empty">
+            {% if teacher_mode %}
+              Нет ближайшей пары.
+            {% else %}
+              Доступно только при teacher-mode.
+            {% endif %}
+          </div>
+        {% endif %}
+      </div>
+    </article>
+
+    <!-- News (WIDE) -->
     <article class="card bento-wide tilt" data-tilt>
       <header class="card-h">
         <div>
-          <div class="kicker">Официально</div>
-          <h2 class="h2">Новости</h2>
+          <div class="kicker">Новости</div>
+          <h2 class="h2">Актуальное</h2>
         </div>
-        <a class="btn ghost" href="/news/">Все новости</a>
+        <a class="btn ghost" href="/news/">Все</a>
       </header>
 
       <div class="card-b">
         {% if news %}
-          <div class="news-strip">
+          <div class="news-grid">
             {% for n in news %}
-              <a class="news-card" href="/news/">
-                <div class="news-img">
-                  {% if n.image %}
-                    <img src="{{ n.image.url }}" alt="">
-                  {% else %}
-                    <div class="news-ph"></div>
-                  {% endif %}
-                </div>
-                <div class="news-body">
+              <a class="news-item" href="/news/" aria-label="{{ n.title }}">
+                {% if n.image %}
+                  <img class="news-img" src="{{ n.image.url }}" alt="{{ n.title }}">
+                {% endif %}
+                <div class="news-meta">
                   <div class="news-title">{{ n.title }}</div>
-                  <div class="news-sub muted">{{ n.text|truncatechars:120 }}</div>
+                  <div class="news-text">{{ n.text|truncatechars:120 }}</div>
                 </div>
               </a>
             {% endfor %}
           </div>
         {% else %}
-          <div class="empty">Новостей пока нет.</div>
+          <div class="empty">Пока нет новостей.</div>
         {% endif %}
       </div>
     </article>
 
   </div>
 </section>
+
+<script>
+(() => {
+  const holder = document.getElementById("nextLessonTs");
+  const pill = document.getElementById("countdownPill");
+  if (!holder || !pill) return;
+
+  const ts = Number(holder.dataset.ts || "0");
+  if (!ts) { pill.textContent = "—"; return; }
+
+  function fmt(ms) {
+    const s = Math.max(0, Math.floor(ms / 1000));
+    const m = Math.floor(s / 60);
+    const h = Math.floor(m / 60);
+    const mm = m % 60;
+    const ss = s % 60;
+    if (h > 0) return `${h}ч ${mm}м`;
+    if (m > 0) return `${m}м ${ss}с`;
+    return `${ss}с`;
+  }
+
+  function tick() {
+    const left = ts - Date.now();
+    if (left <= 0) {
+      pill.textContent = "Сейчас";
+      return;
+    }
+    pill.textContent = `через ${fmt(left)}`;
+    requestAnimationFrame(() => setTimeout(tick, 250));
+  }
+
+  tick();
+})();
+</script>
 {% endblock %}

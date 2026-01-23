@@ -2,145 +2,107 @@
 <!doctype html>
 <html lang="ru">
 <head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>{% block title %}College Core{% endblock %}</title>
 
+  <link rel="icon" href="{% static 'favicon.ico' %}">
   <link rel="stylesheet" href="{% static 'css/style.css' %}">
+
   <script defer src="{% static 'js/tilt.js' %}"></script>
   <script defer src="{% static 'js/app.js' %}"></script>
-  <script defer src="{% static 'js/notifications.js' %}"></script>
 </head>
+<body>
 
-<body class="app-shell">
-  <aside class="sidebar" aria-label="Навигация">
-    <div class="side-top">
-      <a class="brand" href="/dashboard/">
-        <span class="brand-dot"></span>
-        <span class="brand-text">College Core</span>
-      </a>
-    </div>
-
-    {% with is_student=request.user.student|default_if_none:None %}
-    {% with is_teacher=request.user.teacher|default_if_none:None %}
-    {% with is_director=request.user.director|default_if_none:None %}
-
-    <nav class="side-nav">
-      <!-- always -->
-      <a class="nav-item {% if request.path|slice:':10' == '/dashboard' %}active{% endif %}" href="/dashboard/">
-        <span class="ico">⌂</span><span class="txt">Дашборд</span>
-      </a>
-
-      <!-- Student -->
-      {% if is_student %}
-        <a class="nav-item {% if request.path == '/schedule/' %}active{% endif %}" href="/schedule/">
-          <span class="ico">▦</span><span class="txt">Расписание</span>
-        </a>
-        <a class="nav-item {% if request.path == '/grades/' %}active{% endif %}" href="/grades/">
-          <span class="ico">◎</span><span class="txt">Оценки</span>
-        </a>
-        <a class="nav-item {% if request.path == '/homeworks/' %}active{% endif %}" href="/homeworks/">
-          <span class="ico">☑</span><span class="txt">Домашки</span>
-        </a>
-        <a class="nav-item {% if request.path == '/remarks/' %}active{% endif %}" href="/remarks/">
-          <span class="ico">!</span><span class="txt">Замечания</span>
-        </a>
-        <a class="nav-item {% if request.path == '/rating/' %}active{% endif %}" href="/rating/">
-          <span class="ico">⇧</span><span class="txt">Рейтинг</span>
-        </a>
-      {% endif %}
-
-      <!-- Teacher -->
-      {% if is_teacher and not is_student and not is_director %}
-        <a class="nav-item {% if request.path == '/schedule/' %}active{% endif %}" href="/schedule/">
-          <span class="ico">▦</span><span class="txt">Расписание</span>
-        </a>
-        <a class="nav-item {% if request.path == '/grades/' %}active{% endif %}" href="/grades/">
-          <span class="ico">◎</span><span class="txt">Журнал оценок</span>
-        </a>
-        <a class="nav-item {% if request.path == '/homeworks/' %}active{% endif %}" href="/homeworks/">
-          <span class="ico">☑</span><span class="txt">Домашки</span>
-        </a>
-        <a class="nav-item {% if request.path == '/remarks/' %}active{% endif %}" href="/remarks/">
-          <span class="ico">!</span><span class="txt">Замечания</span>
-        </a>
-      {% endif %}
-
-      <!-- Director -->
-      {% if is_director %}
-        <a class="nav-item {% if request.path == '/rating/' %}active{% endif %}" href="/rating/">
-          <span class="ico">⇧</span><span class="txt">Рейтинг</span>
-        </a>
-        <a class="nav-item {% if request.path == '/remarks/' %}active{% endif %}" href="/remarks/">
-          <span class="ico">!</span><span class="txt">Замечания</span>
-        </a>
-
-        {# если директор ещё и teacher — показываем преподавательские рабочие разделы #}
-        {% if is_teacher %}
-          <div class="nav-sep"></div>
-          <div class="nav-caption">Преподаватель</div>
-          <a class="nav-item {% if request.path == '/schedule/' %}active{% endif %}" href="/schedule/">
-            <span class="ico">▦</span><span class="txt">Расписание</span>
-          </a>
-          <a class="nav-item {% if request.path == '/grades/' %}active{% endif %}" href="/grades/">
-            <span class="ico">◎</span><span class="txt">Журнал оценок</span>
-          </a>
-          <a class="nav-item {% if request.path == '/homeworks/' %}active{% endif %}" href="/homeworks/">
-            <span class="ico">☑</span><span class="txt">Домашки</span>
-          </a>
-        {% endif %}
-      {% endif %}
-
-      <!-- Shared -->
-      <div class="nav-sep"></div>
-      <a class="nav-item {% if request.path == '/news/' %}active{% endif %}" href="/news/">
-        <span class="ico">◻</span><span class="txt">Новости</span>
-      </a>
-      <a class="nav-item {% if request.path == '/notifications/' %}active{% endif %}" href="/notifications/">
-        <span class="ico">◉</span><span class="txt">Уведомления</span>
-        {% if unread_notifications_count %}
-          <span class="badge">{{ unread_notifications_count }}</span>
-        {% endif %}
-      </a>
-      <a class="nav-item {% if request.path == '/settings/' %}active{% endif %}" href="/settings/">
-        <span class="ico">⚙</span><span class="txt">Настройки</span>
-      </a>
-    </nav>
-
-    {% endwith %}{% endwith %}{% endwith %}
-
-    <div class="side-bottom">
-      <a class="nav-item" href="/admin/" {% if not request.user.is_staff %}style="display:none"{% endif %}>
-        <span class="ico">⛭</span><span class="txt">Админка</span>
-      </a>
-      <a class="nav-item danger" href="/logout/">
-        <span class="ico">⎋</span><span class="txt">Выйти</span>
-      </a>
-    </div>
-  </aside>
-
-  <main class="main">
-    <header class="topbar">
-      <div class="top-left">{% block topbar_left %}{% endblock %}</div>
-
-      <div class="top-right">
-        <a class="profile-chip" href="/settings/" aria-label="Профиль">
-          <span class="avatar">
-            {{ request.user.username|slice:":1"|upper }}
-          </span>
-          <span class="who">
-            <span class="name">{{ request.user.first_name|default:request.user.username }}</span>
-            <span class="role">
-              {% if request.user.director %}Директор{% elif request.user.teacher %}Преподаватель{% elif request.user.student %}Студент{% else %}Пользователь{% endif %}
-            </span>
-          </span>
-        </a>
+  <div class="shell">
+    <aside class="sidebar">
+      <div class="sidebar-top">
+        <div class="logo">
+          <span class="logo-dot"></span>
+          <span class="logo-text">Core</span>
+        </div>
       </div>
-    </header>
 
-    <section class="content">
+      <nav class="sidebar-nav">
+        <a class="nav-item" href="/dashboard/">
+          <span class="ico">⌂</span>
+          <span class="txt">Дашборд</span>
+        </a>
+
+        {% if user.is_authenticated %}
+          {# Определяем роль через наличие объектов профиля (без лишней логики) #}
+          {% if user.student %}
+            <a class="nav-item" href="/schedule/"><span class="ico">🗓</span><span class="txt">Расписание</span></a>
+            <a class="nav-item" href="/grades/"><span class="ico">★</span><span class="txt">Оценки</span></a>
+            <a class="nav-item" href="/homeworks/"><span class="ico">☑</span><span class="txt">Домашки</span></a>
+            <a class="nav-item" href="/remarks/"><span class="ico">!</span><span class="txt">Замечания</span></a>
+            <a class="nav-item" href="/news/"><span class="ico">▣</span><span class="txt">Новости</span></a>
+            <a class="nav-item" href="/settings/"><span class="ico">⚙</span><span class="txt">Настройки</span></a>
+
+          {% elif user.director %}
+            {# Директор: управление и контроль + teacher-mode информация на его даше #}
+            <a class="nav-item" href="/remarks/"><span class="ico">!</span><span class="txt">Замечания</span></a>
+            <a class="nav-item" href="/grades/"><span class="ico">★</span><span class="txt">Оценки</span></a>
+            <a class="nav-item" href="/homeworks/"><span class="ico">☑</span><span class="txt">Домашки</span></a>
+            <a class="nav-item" href="/schedule/"><span class="ico">🗓</span><span class="txt">Расписание</span></a>
+            <a class="nav-item" href="/news/"><span class="ico">▣</span><span class="txt">Новости</span></a>
+            <a class="nav-item" href="/admin/"><span class="ico">▦</span><span class="txt">Админка</span></a>
+
+          {% elif user.teacher %}
+            {# Преподаватель: только нужное по работе #}
+            <a class="nav-item" href="/schedule/"><span class="ico">🗓</span><span class="txt">Расписание</span></a>
+            <a class="nav-item" href="/grades/"><span class="ico">★</span><span class="txt">Оценки</span></a>
+            <a class="nav-item" href="/homeworks/"><span class="ico">☑</span><span class="txt">Домашки</span></a>
+            <a class="nav-item" href="/remarks/"><span class="ico">!</span><span class="txt">Замечания</span></a>
+            <a class="nav-item" href="/news/"><span class="ico">▣</span><span class="txt">Новости</span></a>
+            <a class="nav-item" href="/admin/"><span class="ico">▦</span><span class="txt">Админка</span></a>
+
+          {% else %}
+            <a class="nav-item" href="/news/"><span class="ico">▣</span><span class="txt">Новости</span></a>
+          {% endif %}
+        {% endif %}
+      </nav>
+
+      <div class="sidebar-bottom">
+        {% if user.is_authenticated %}
+          <a class="nav-item danger" href="/logout/">
+            <span class="ico">⇦</span>
+            <span class="txt">Выйти</span>
+          </a>
+        {% else %}
+          <a class="nav-item" href="/login/">
+            <span class="ico">👤</span>
+            <span class="txt">Войти</span>
+          </a>
+        {% endif %}
+      </div>
+    </aside>
+
+    <main class="main">
+      <header class="topbar">
+        <div class="topbar-left">
+          {% block topbar_left %}{% endblock %}
+        </div>
+        <div class="topbar-right">
+          {% if user.is_authenticated %}
+            <div class="user-chip">
+              <div class="avatar">{{ user.first_name|default:user.username|slice:":1" }}</div>
+              <div class="meta">
+                <div class="name">{{ user.get_full_name|default:user.username }}</div>
+                <div class="role">
+                  {% if user.director %}Директор{% elif user.teacher %}Преподаватель{% elif user.student %}Студент{% else %}Профиль{% endif %}
+                </div>
+              </div>
+            </div>
+          {% else %}
+            <a class="btn" href="/login/">Войти</a>
+          {% endif %}
+        </div>
+      </header>
+
       {% block content %}{% endblock %}
-    </section>
-  </main>
+    </main>
+  </div>
+
 </body>
 </html>

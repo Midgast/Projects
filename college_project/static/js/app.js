@@ -1,139 +1,67 @@
+// college_project/static/js/app.js
 (() => {
-  // -----------------------------
-  // CSRF helper (Django)
-  // -----------------------------
-  function getCookie(name) {
-    const v = document.cookie.split(";").map(s => s.trim());
-    for (const item of v) {
-      if (item.startsWith(name + "=")) return decodeURIComponent(item.slice(name.length + 1));
-    }
+  // --- CSRF helper (Django) ---
+  const getCookie = (name) => {
+    const value = `; ${document.cookie}`;
+    const parts = value.split(`; ${name}=`);
+    if (parts.length === 2) return parts.pop().split(";").shift();
     return null;
-  }
-  const CSRF = getCookie("csrftoken");
+  };
 
-  async function postJSON(url, body = null) {
-    const res = await fetch(url, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        "X-CSRFToken": CSRF || "",
-      },
-      body: body ? JSON.stringify(body) : "{}",
-    });
+  const csrf = getCookie("csrftoken");
 
-    let data = null;
-    try { data = await res.json(); } catch (_) {}
-    if (!res.ok) {
-      const msg = (data && data.error) ? data.error : `HTTP ${res.status}`;
-      throw new Error(msg);
-    }
-    return data;
-  }
+  // --- Homework toggle ---
+  const toggles = document.querySelectorAll("[data-hw-toggle][data-hw-id]");
+  if (toggles.length) {
+    toggles.forEach((cb) => {
+      cb.addEventListener("change", async () => {
+        const id = cb.getAttribute("data-hw-id");
+        const url = `/api/homeworks/${id}/toggle/`;
 
-  // -----------------------------
-  // Active nav highlight
-  // -----------------------------
-  function markActiveNav() {
-    const path = window.location.pathname;
-    document.querySelectorAll(".nav-item").forEach(a => {
-      const href = a.getAttribute("href") || "";
-      const isActive =
-        href !== "/" &&
-        (path === href || (href !== "/" && path.startsWith(href)));
+        // optimistic UI is OK, but revert on fail
+        const prev = !cb.checked;
 
-      if (isActive) a.classList.add("active");
-      else a.classList.remove("active");
-    });
-  }
+        try {
+          const res = await fetch(url, {
+            method: "POST",
+            headers: {
+              "X-CSRFToken": csrf || "",
+              "X-Requested-With": "XMLHttpRequest",
+            },
+          });
 
-  // -----------------------------
-  // Countdown (data-countdown)
-  // -----------------------------
-  function pad2(n) {
-    return String(n).padStart(2, "0");
-  }
+          if (!res.ok) throw new Error(`HTTP ${res.status}`);
+          const data = await res.json();
 
-  function formatHHMMSS(ms) {
-    const s = Math.max(0, Math.floor(ms / 1000));
-    const hh = Math.floor(s / 3600);
-    const mm = Math.floor((s % 3600) / 60);
-    const ss = s % 60;
-    return `${pad2(hh)}:${pad2(mm)}:${pad2(ss)}`;
-  }
+          if (!data || data.ok !== true) throw new Error("Bad response");
+          // Server is source of truth
+          cb.checked = !!data.completed;
 
-  function initCountdowns() {
-    const nodes = [...document.querySelectorAll("[data-countdown]")];
-    if (!nodes.length) return;
-
-    function tick() {
-      const now = Date.now();
-      for (const node of nodes) {
-        const targetMs = Number(node.getAttribute("data-target-ms") || "0");
-        const out = node.querySelector("[data-countdown-text]");
-        if (!out) continue;
-
-        if (!targetMs) {
-          out.textContent = "—";
-          continue;
+          // update pill in same row (if exists)
+          const row = cb.closest(".hw-row");
+          if (row) {
+            const pill = row.querySelector(".pill.mini");
+            if (pill) {
+              if (cb.checked) {
+                pill.textContent = "Готово";
+                pill.classList.remove("subtle");
+              } else {
+                pill.textContent = "В работе";
+                pill.classList.add("subtle");
+              }
+            }
+          }
+        } catch (e) {
+          // revert
+          cb.checked = prev;
+          console.error("Homework toggle failed:", e);
         }
-
-        const diff = targetMs - now;
-        out.textContent = formatHHMMSS(diff);
-      }
-    }
-
-    tick();
-    setInterval(tick, 1000);
-  }
-
-  // -----------------------------
-  // Homework toggle (data-hw-toggle)
-  // -----------------------------
-  function setHomeworkRowState(row, completed) {
-    row.dataset.completed = completed ? "1" : "0";
-    row.classList.toggle("is-done", !!completed);
-
-    const check = row.querySelector(".check");
-    if (check) {
-      check.classList.toggle("on", !!completed);
-      check.textContent = completed ? "✓" : "\u00A0";
-    }
-
-    const btn = row.querySelector("[data-hw-toggle]");
-    if (btn) btn.textContent = completed ? "Снять" : "Готово";
-  }
-
-  function initHomeworkToggle() {
-    document.addEventListener("click", async (e) => {
-      const btn = e.target.closest("[data-hw-toggle]");
-      if (!btn) return;
-
-      const id = btn.getAttribute("data-id");
-      const row = btn.closest("[data-hw-row]");
-      if (!id || !row) return;
-
-      btn.classList.add("loading");
-
-      try {
-        const data = await postJSON(`/api/homeworks/${id}/toggle/`);
-        if (data && data.ok) {
-          setHomeworkRowState(row, !!data.completed);
-        }
-      } catch (err) {
-        // максимально тихо, без краша UI
-        alert(`Не удалось обновить домашку: ${err.message}`);
-      } finally {
-        btn.classList.remove("loading");
-      }
+      });
     });
   }
 
-  // -----------------------------
-  // Init
-  // -----------------------------
-  document.addEventListener("DOMContentLoaded", () => {
-    markActiveNav();
-    initCountdowns();
-    initHomeworkToggle();
+  // --- Optional: close flash messages (if you have them) ---
+  document.querySelectorAll("[data-flash-close]").forEach((btn) => {
+    btn.addEventListener("click", () => btn.closest("[data-flash]")?.remove());
   });
 })();
