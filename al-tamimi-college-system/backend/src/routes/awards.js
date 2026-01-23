@@ -51,6 +51,26 @@ awardsRouter.post("/award", requireAuth, requireRole("teacher", "admin"), async 
       })
       .parse(req.body);
 
+    if (demoMode()) {
+      const badge = demo.badges.find((b) => b.code === body.badgeCode);
+      if (!badge) return res.status(400).json({ error: { message: "Unknown badge" } });
+
+      const list = demo.userBadges[body.userId] || [];
+      const exists = list.some((b) => b.code === badge.code);
+      if (!exists) {
+        list.unshift({
+          code: badge.code,
+          title: badge.title,
+          description: badge.description,
+          color: badge.color,
+          awarded_at: new Date().toISOString(),
+        });
+        demo.userBadges[body.userId] = list;
+      }
+
+      return res.status(201).json({ ok: true });
+    }
+
     const badge = await query(`select id from badges where code=$1`, [body.badgeCode]);
     const badgeId = badge.rows[0]?.id;
     if (!badgeId) return res.status(400).json({ error: { message: "Unknown badge" } });

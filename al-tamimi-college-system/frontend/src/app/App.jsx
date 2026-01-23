@@ -10,6 +10,9 @@ import { JournalPage } from "../pages/JournalPage.jsx";
 import { NewsPage } from "../pages/NewsPage.jsx";
 import { BadgesPage } from "../pages/BadgesPage.jsx";
 import { AdminAnalyticsPage } from "../pages/AdminAnalyticsPage.jsx";
+import { StudentGoalsPage } from "../pages/StudentGoalsPage.jsx";
+import { TeacherToolsPage } from "../pages/TeacherToolsPage.jsx";
+import { AdminToolsPage } from "../pages/AdminToolsPage.jsx";
 
 function Protected({ children }) {
   const { token } = useAuth();
@@ -35,6 +38,9 @@ export function App() {
         <Route path="news" element={<NewsPage />} />
         <Route path="badges" element={<BadgesPage />} />
         <Route path="analytics" element={<AdminAnalyticsPage />} />
+        <Route path="student-goals" element={<StudentGoalsPage />} />
+        <Route path="teacher-tools" element={<TeacherToolsPage />} />
+        <Route path="admin-tools" element={<AdminToolsPage />} />
       </Route>
     </Routes>
   );

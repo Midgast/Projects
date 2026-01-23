@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { Link, NavLink, Outlet, useNavigate } from "react-router-dom";
-import { BarChart3, CalendarDays, LogOut, Medal, Newspaper, ShieldCheck, Users } from "lucide-react";
+import { BarChart3, CalendarDays, LogOut, Medal, Newspaper, Users, Wrench, Target, Settings } from "lucide-react";
 
 import { useAuth } from "../app/auth/AuthContext.jsx";
 import { useI18n } from "../app/i18n/I18nContext.jsx";
@@ -32,6 +32,7 @@ export function Shell() {
 
   const isAdmin = user?.role === "admin";
   const isTeacher = user?.role === "teacher";
+  const isStudent = user?.role === "student";
 
   return (
     <div className="min-h-screen">
@@ -70,6 +71,9 @@ export function Shell() {
 
             <nav className="mt-4 space-y-1">
               <NavItem to="/" icon={BarChart3} label={t("dashboard")} />
+              {isStudent && <NavItem to="/student-goals" icon={Target} label={t("student_goals")}/>}
+              {(isTeacher || isAdmin) && <NavItem to="/teacher-tools" icon={Wrench} label={t("teacher_tools")} />}
+              {isAdmin && <NavItem to="/admin-tools" icon={Settings} label={t("admin_tools")} />}
               <NavItem to="/schedule" icon={CalendarDays} label={t("schedule")} />
               {(isTeacher || isAdmin) && <NavItem to="/journal" icon={Users} label={t("journal")} />}
               <NavItem to="/news" icon={Newspaper} label={t("announcements")} />

@@ -69,6 +69,29 @@ scheduleRouter.post("/", requireAuth, requireRole("admin"), async (req, res, nex
       })
       .parse(req.body);
 
+    if (demoMode()) {
+      const group = demo.groups.find((g) => g.id === body.groupId);
+      const subject = demo.subjects.find((s) => s.id === body.subjectId);
+      const teacher = demo.users.teacher.id === body.teacherId ? demo.users.teacher : null;
+
+      const id = demo.schedule.reduce((m, x) => Math.max(m, x.id), 0) + 1;
+      demo.schedule.push({
+        id,
+        day_of_week: body.dayOfWeek,
+        start_time: body.startTime,
+        end_time: body.endTime,
+        room: body.room ?? null,
+        group_id: body.groupId,
+        group_name: group?.name || `Group ${body.groupId}`,
+        subject_id: body.subjectId,
+        subject_name: subject?.name || `Subject ${body.subjectId}`,
+        teacher_id: body.teacherId,
+        teacher_name: teacher?.fullName || `Teacher ${body.teacherId}`,
+      });
+
+      return res.status(201).json({ id });
+    }
+
     const inserted = await query(
       `insert into schedule(group_id, subject_id, teacher_id, day_of_week, start_time, end_time, room)
        values ($1,$2,$3,$4,$5,$6,$7)
