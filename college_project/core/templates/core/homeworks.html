@@ -108,29 +108,31 @@
           {% else %}
             <div class="hw-list">
               {% for h in homeworks %}
-                <label class="hw-row">
-                  <input
-                    type="checkbox"
-                    class="hw-check"
-                    {% if h.completed %}checked{% endif %}
-                    data-hw-toggle
-                    data-hw-id="{{ h.id }}"
-                    {% if not allow_toggle %}disabled{% endif %}
-                  >
-                  <span class="hw-meta">
-                    <span class="hw-title">{{ h.title|default:"Задание" }}</span>
-                    <span class="hw-sub muted">
-                      {{ h.subject.name|default:"—" }}
-                      <span class="sep">·</span>
-                      дедлайн: {{ h.deadline|date:"d.m.Y"|default:"—" }}
+                <div class="hw-row" data-hw-row data-completed="{% if h.completed %}1{% else %}0{% endif %}">
+                  <label style="display: contents; cursor: pointer;">
+                    <input
+                      type="checkbox"
+                      class="hw-check"
+                      {% if h.completed %}checked{% endif %}
+                      data-hw-toggle
+                      data-id="{{ h.id }}"
+                      {% if not allow_toggle %}disabled{% endif %}
+                    >
+                    <span class="hw-meta">
+                      <span class="hw-title">{{ h.title|default:"Задание" }}</span>
+                      <span class="hw-sub muted">
+                        {{ h.subject.name|default:"—" }}
+                        <span class="sep">·</span>
+                        дедлайн: {{ h.deadline|date:"d.m.Y"|default:"—" }}
+                      </span>
                     </span>
-                  </span>
-                  {% if h.completed %}
-                    <span class="pill mini">Готово</span>
-                  {% else %}
-                    <span class="pill mini subtle">В работе</span>
-                  {% endif %}
-                </label>
+                    {% if h.completed %}
+                      <span class="pill mini">Готово</span>
+                    {% else %}
+                      <span class="pill mini subtle">В работе</span>
+                    {% endif %}
+                  </label>
+                </div>
               {% endfor %}
             </div>
 

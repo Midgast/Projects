@@ -86,6 +86,17 @@ class Director(models.Model):
         return (self.user.get_full_name() or self.user.username).strip()
 
 
+class UserProfile(models.Model):
+    user = models.OneToOneField(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
+    role = models.CharField(max_length=10, default='student')
+
+    class Meta:
+        ordering = ["user__username"]
+
+    def __str__(self) -> str:
+        return f"{self.user.username} ({self.role})"
+
+
 class ScheduleEntry(models.Model):
     WEEKDAYS = [
         (0, "Monday"),
@@ -98,7 +109,7 @@ class ScheduleEntry(models.Model):
     ]
 
     group = models.ForeignKey(Group, on_delete=models.CASCADE, related_name="schedule")
-    weekday = models.PositiveSmallIntegerField(choices=WEEKDAYS)
+    day_of_week = models.PositiveSmallIntegerField(choices=WEEKDAYS)  # Изменено с weekday на day_of_week
     time_start = models.TimeField()
     time_end = models.TimeField()
     subject = models.ForeignKey(Subject, on_delete=models.PROTECT)
@@ -106,14 +117,14 @@ class ScheduleEntry(models.Model):
     location = models.CharField(max_length=64, default="101")
 
     class Meta:
-        ordering = ["group__code", "weekday", "time_start"]
+        ordering = ["group__code", "day_of_week", "time_start"]
         indexes = [
-            models.Index(fields=["group", "weekday", "time_start"]),
-            models.Index(fields=["teacher", "weekday", "time_start"]),
+            models.Index(fields=["group", "day_of_week", "time_start"]),
+            models.Index(fields=["teacher", "day_of_week", "time_start"]),
         ]
 
     def __str__(self) -> str:
-        return f"{self.group.code} {self.get_weekday_display()} {self.time_start}-{self.time_end} {self.subject.name}"
+        return f"{self.group.code} {self.get_day_of_week_display()} {self.time_start}-{self.time_end} {self.subject.name}"
 
 
 class Homework(models.Model):

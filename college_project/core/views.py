@@ -597,4 +597,6 @@ def api_mark_notification_read(request, notif_id: int):
     if not n.is_read:
         n.is_read = True
         n.save(update_fields=["is_read"])
-    return JsonResponse({"ok": True})
+
+    unread_count = Notification.objects.filter(user=request.user, is_read=False).count()
+    return JsonResponse({"ok": True, "unread_count": unread_count})

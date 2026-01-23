@@ -24,6 +24,6 @@ urlpatterns = [
     path("settings/", views.settings_view, name="settings"),
 
     # APIs
-    path("api/homeworks/<int:pk>/toggle/", views.api_toggle_homework, name="api_toggle_homework"),
-    path("api/notifications/<int:pk>/read/", views.api_mark_notification_read, name="api_mark_notification_read"),
+    path("api/homeworks/<int:hw_id>/toggle/", views.api_toggle_homework, name="api_toggle_homework"),
+    path("api/notifications/<int:notif_id>/read/", views.api_mark_notification_read, name="api_mark_notification_read"),
 ]

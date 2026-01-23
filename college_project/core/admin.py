@@ -72,8 +72,8 @@ class DirectorAdmin(admin.ModelAdmin):
 
 @admin.register(ScheduleEntry)
 class ScheduleEntryAdmin(admin.ModelAdmin):
-    list_display = ("group", "weekday", "time_start", "time_end", "subject", "teacher", "location")
-    list_filter = ("group", "weekday", "subject", "teacher")
+    list_display = ("group", "day_of_week", "time_start", "time_end", "subject", "teacher", "location")
+    list_filter = ("group", "day_of_week", "subject", "teacher")
     search_fields = (
         "group__name", "group__code",
         "subject__name", "subject__code",
@@ -81,7 +81,7 @@ class ScheduleEntryAdmin(admin.ModelAdmin):
         "location",
     )
     autocomplete_fields = ("group", "subject", "teacher")
-    ordering = ("group__name", "weekday", "time_start")
+    ordering = ("group__name", "day_of_week", "time_start")
 
 
 # -----------------------------

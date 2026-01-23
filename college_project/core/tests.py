@@ -5,7 +5,7 @@ from .models import UserProfile, Notification
 class UserProfileModelTest(TestCase):
     def test_create_user_profile(self):
         user = User.objects.create_user('testuser', 'test@example.com', 'testpass')
-        profile = UserProfile.objects.create(user=user, role='student')
+        profile = UserProfile.objects.get(user=user)
         self.assertEqual(profile.role, 'student')
 
 class NotificationModelTest(TestCase):

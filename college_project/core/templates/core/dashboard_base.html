@@ -99,7 +99,7 @@
       <a class="nav-item {% if request.path == '/notifications/' %}active{% endif %}" href="/notifications/">
         <span class="ico">◉</span><span class="txt">Уведомления</span>
         {% if unread_notifications_count %}
-          <span class="badge">{{ unread_notifications_count }}</span>
+          <span class="badge" id="notifBadge">{{ unread_notifications_count }}</span>
         {% endif %}
       </a>
       <a class="nav-item {% if request.path == '/settings/' %}active{% endif %}" href="/settings/">

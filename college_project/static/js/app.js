@@ -93,26 +93,34 @@
     row.dataset.completed = completed ? "1" : "0";
     row.classList.toggle("is-done", !!completed);
 
-    const check = row.querySelector(".check");
+    const check = row.querySelector(".hw-check");
     if (check) {
-      check.classList.toggle("on", !!completed);
-      check.textContent = completed ? "✓" : "\u00A0";
+      check.checked = !!completed;
     }
 
-    const btn = row.querySelector("[data-hw-toggle]");
-    if (btn) btn.textContent = completed ? "Снять" : "Готово";
+    // Update status pills
+    const pills = row.querySelectorAll(".pill.mini");
+    pills.forEach(pill => {
+      if (completed) {
+        pill.textContent = "Готово";
+        pill.classList.remove("subtle");
+      } else {
+        pill.textContent = "В работе";
+        pill.classList.add("subtle");
+      }
+    });
   }
 
   function initHomeworkToggle() {
-    document.addEventListener("click", async (e) => {
-      const btn = e.target.closest("[data-hw-toggle]");
-      if (!btn) return;
+    document.addEventListener("change", async (e) => {
+      const checkbox = e.target.closest("[data-hw-toggle]");
+      if (!checkbox) return;
 
-      const id = btn.getAttribute("data-id");
-      const row = btn.closest("[data-hw-row]");
+      const id = checkbox.getAttribute("data-id");
+      const row = checkbox.closest(".hw-row");
       if (!id || !row) return;
 
-      btn.classList.add("loading");
+      checkbox.classList.add("loading");
 
       try {
         const data = await postJSON(`/api/homeworks/${id}/toggle/`);
@@ -120,10 +128,11 @@
           setHomeworkRowState(row, !!data.completed);
         }
       } catch (err) {
-        // максимально тихо, без краша UI
+        // Revert checkbox on error
+        checkbox.checked = !checkbox.checked;
         alert(`Не удалось обновить домашку: ${err.message}`);
       } finally {
-        btn.classList.remove("loading");
+        checkbox.classList.remove("loading");
       }
     });
   }
