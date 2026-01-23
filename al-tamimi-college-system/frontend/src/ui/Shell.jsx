@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { Link, NavLink, Outlet, useNavigate } from "react-router-dom";
-import { BarChart3, CalendarDays, LogOut, Medal, Newspaper, Users, Wrench, Target, Settings } from "lucide-react";
+import { BarChart3, CalendarDays, LogOut, Medal, Newspaper, Users, Wrench, Target, Settings, Trophy, UserCheck } from "lucide-react";
 
 import { useAuth } from "../app/auth/AuthContext.jsx";
 import { useI18n } from "../app/i18n/I18nContext.jsx";
@@ -33,6 +33,7 @@ export function Shell() {
   const isAdmin = user?.role === "admin";
   const isTeacher = user?.role === "teacher";
   const isStudent = user?.role === "student";
+  const isParent = user?.role === "parent";
 
   return (
     <div className="min-h-screen">
@@ -55,13 +56,13 @@ export function Shell() {
                 </div>
                 <div>
                   <div className="text-sm font-extrabold tracking-tight">AL TAMIMI</div>
-                  <div className="text-xs text-slate-300">College System</div>
+                  <div className="text-xs text-slate-300">{t("login_title")}</div>
                 </div>
               </div>
             </Link>
 
             <div className="mt-4 rounded-2xl border border-white/10 bg-white/5 p-3">
-              <div className="text-xs font-semibold text-slate-300">Signed in as</div>
+              <div className="text-xs font-semibold text-slate-300">{t("signed_in_as")}</div>
               <div className="mt-1 text-sm font-bold text-white">{user?.fullName}</div>
               <div className="mt-1 inline-flex items-center gap-2 text-xs text-slate-300">
                 <Users size={14} />
@@ -79,6 +80,8 @@ export function Shell() {
               <NavItem to="/news" icon={Newspaper} label={t("announcements")} />
               <NavItem to="/badges" icon={Medal} label={t("badges")} />
               {isAdmin && <NavItem to="/analytics" icon={BarChart3} label={t("analytics")} />}
+              <NavItem to="/gamification" icon={Trophy} label={t("gamification")} />
+              {isParent && <NavItem to="/parent" icon={UserCheck} label={t("parent_portal")} />}
             </nav>
 
             <div className="mt-4 rounded-2xl border border-white/10 bg-white/5 p-3">
@@ -109,7 +112,7 @@ export function Shell() {
               }}
             >
               <LogOut size={16} />
-              Log out
+              {t("log_out")}
             </button>
           </div>
         </aside>
@@ -119,7 +122,7 @@ export function Shell() {
             <Outlet />
           </div>
           <div className="mt-4 text-center text-xs text-slate-400">
-            Hackathon MVP · Minimal SaaS UI · Color-coded risk indicators
+            {t("footer_tagline")}
           </div>
         </main>
       </div>

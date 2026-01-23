@@ -67,3 +67,17 @@ newsRouter.post("/", requireAuth, requireRole("admin"), async (req, res, next) =
     next(e);
   }
 });
+
+newsRouter.delete("/:id", requireAuth, requireRole("admin"), async (req, res, next) => {
+  try {
+    const { id } = req.params;
+    if (demoMode()) {
+      demo.news = demo.news.filter(n => n.id !== Number(id));
+      return res.json({ deleted: true });
+    }
+    await query("delete from news where id = $1", [Number(id)]);
+    res.json({ deleted: true });
+  } catch (e) {
+    next(e);
+  }
+});

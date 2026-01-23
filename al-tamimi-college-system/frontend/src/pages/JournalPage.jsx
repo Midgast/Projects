@@ -1,10 +1,13 @@
 import React, { useEffect, useState } from "react";
+import { Download, FileSpreadsheet } from "lucide-react";
 
 import { useAuth } from "../app/auth/AuthContext.jsx";
-import { apiFetch, apiUrl } from "../app/api.js";
+import { apiFetch, downloadFile } from "../app/api.js";
+import { useI18n } from "../app/i18n/I18nContext.jsx";
 
 export function JournalPage() {
   const { token, user } = useAuth();
+  const { t } = useI18n();
   const [rows, setRows] = useState([]);
   const [error, setError] = useState("");
 
@@ -30,8 +33,8 @@ export function JournalPage() {
   if (!canSee) {
     return (
       <div>
-        <div className="text-xl font-extrabold tracking-tight">Attendance Journal</div>
-        <div className="mt-2 text-sm text-slate-500">This section is available for Teacher/Admin roles.</div>
+        <div className="text-xl font-extrabold tracking-tight">{t("journal_title")}</div>
+        <div className="mt-2 text-sm text-slate-300">{t("journal_only")}</div>
       </div>
     );
   }
@@ -40,59 +43,54 @@ export function JournalPage() {
     <div>
       <div className="flex items-start justify-between gap-4">
         <div>
-          <div className="text-xl font-extrabold tracking-tight">Attendance Journal</div>
-          <div className="mt-1 text-sm text-slate-500">Demo view (groupId=1, subjectId=1)</div>
+          <div className="text-xl font-extrabold tracking-tight">{t("journal_title")}</div>
+          <div className="mt-1 text-sm text-slate-300">{t("demo_view")}</div>
         </div>
 
-        <div className="flex gap-2">
-          <a
-            className="btn-ghost"
-            href={apiUrl(`/api/export/attendance.pdf?groupId=${groupId}&subjectId=${subjectId}`)}
-            target="_blank"
-            rel="noreferrer"
-          >
-            Export PDF
-          </a>
-          <a
-            className="btn-primary"
-            href={apiUrl(`/api/export/attendance.xlsx?groupId=${groupId}&subjectId=${subjectId}`)}
-            target="_blank"
-            rel="noreferrer"
-          >
-            Export Excel
-          </a>
+        <div className="card reveal p-4">
+          <div className="flex items-center justify-between gap-3">
+            <div className="text-sm font-bold">{t("attendance_journal")}</div>
+            <div className="flex gap-2">
+              <button type="button" className="btn-ghost" onClick={async () => { await downloadFile(`/api/export/attendance.pdf?groupId=${groupId}&subjectId=${subjectId}`, { token, filename: "attendance.pdf", }); }}>
+                <Download size={16} />
+              </button>
+              <button type="button" className="btn-ghost" onClick={async () => { await downloadFile(`/api/export/attendance.xlsx?groupId=${groupId}&subjectId=${subjectId}`, { token, filename: "attendance.xlsx", }); }}>
+                <FileSpreadsheet size={16} />
+              </button>
+            </div>
+          </div>
         </div>
       </div>
 
-      {error && <div className="mt-4 rounded-xl border border-rose-200 bg-rose-50 p-3 text-sm text-rose-700">{error}</div>}
+      {error && <div className="mt-4 rounded-xl border border-rose-400/20 bg-rose-500/10 p-3 text-sm text-rose-100">{error}</div>}
 
-      <div className="mt-6 overflow-hidden rounded-2xl border border-slate-200 bg-white">
+      <div className="mt-6 overflow-hidden rounded-2xl border border-white/10 bg-white/5">
         <table className="w-full text-left text-sm">
-          <thead className="bg-slate-50 text-xs font-bold text-slate-600">
+          <thead className="bg-white/5 text-xs font-bold text-slate-200">
             <tr>
-              <th className="px-4 py-3">Date</th>
-              <th className="px-4 py-3">Student</th>
-              <th className="px-4 py-3">Status</th>
-              <th className="px-4 py-3">Grade</th>
-              <th className="px-4 py-3">Comment</th>
+              <th className="px-4 py-3">{t("date")}</th>
+              <th className="px-4 py-3">{t("student_name")}</th>
+              <th className="px-4 py-3">{t("status")}</th>
+              <th className="px-4 py-3">{t("grade")}</th>
+              <th className="px-4 py-3">{t("comment")}</th>
             </tr>
           </thead>
           <tbody>
             {rows.map((r) => (
-              <tr key={r.id} className="border-t border-slate-100">
-                <td className="px-4 py-3 text-slate-600">{r.date}</td>
+              <tr key={r.id} className="border-t border-white/10">
+                <td className="px-4 py-3 text-slate-200">{r.date}</td>
                 <td className="px-4 py-3 font-semibold">{r.student_name}</td>
                 <td className="px-4 py-3">
-                  <span className="badge border border-slate-200 bg-slate-50 text-slate-700">{r.status}</span>
+                  <span className="badge border border-white/10 bg-white/5 text-slate-100">{r.status}</span>
                 </td>
                 <td className="px-4 py-3">{r.grade ?? ""}</td>
-                <td className="px-4 py-3 text-slate-600">{r.comment ?? ""}</td>
+                <td className="px-4 py-3 text-slate-200">{r.comment ?? ""}</td>
               </tr>
             ))}
             {rows.length === 0 && (
               <tr>
-                <td className="px-4 py-6 text-sm text-slate-500" colSpan={5}>
-                  No records.
+                <td className="px-4 py-6 text-sm text-slate-300" colSpan={5}>
+                  {t("no_records")}
                 </td>
               </tr>
             )}
@@ -100,9 +98,7 @@ export function JournalPage() {
         </table>
       </div>
 
-      <div className="mt-3 text-xs text-slate-500">
-        For hackathon: this is enough to show attendance journal + export. You can extend with filters later.
-      </div>
+      <div className="mt-3 text-xs text-slate-300">{t("journal_note")}</div>
     </div>
   );
 }

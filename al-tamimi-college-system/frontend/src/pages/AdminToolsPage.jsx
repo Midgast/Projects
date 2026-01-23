@@ -1,4 +1,5 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
+import { Megaphone, BarChart3 } from "lucide-react";
 
 import { useAuth } from "../app/auth/AuthContext.jsx";
 import { apiFetch } from "../app/api.js";
@@ -50,7 +51,7 @@ export function AdminToolsPage() {
       <div className="mt-1 text-sm text-slate-300">{t("admin_tools_sub")}</div>
 
       <div className="mt-6 grid grid-cols-1 gap-4 md:grid-cols-2">
-        <div className="card p-4">
+        <div className="card reveal p-4">
           <div className="text-sm font-bold">{t("add_schedule_item")}</div>
 
           <div className="mt-4 grid grid-cols-1 gap-3">
@@ -91,13 +92,13 @@ export function AdminToolsPage() {
               <div>
                 <div className="text-xs font-semibold text-slate-300">{t("day")}</div>
                 <select className="mt-1 w-full rounded-xl" value={dayOfWeek} onChange={(e) => setDayOfWeek(Number(e.target.value))}>
-                  <option value={1}>Mon</option>
-                  <option value={2}>Tue</option>
-                  <option value={3}>Wed</option>
-                  <option value={4}>Thu</option>
-                  <option value={5}>Fri</option>
-                  <option value={6}>Sat</option>
-                  <option value={7}>Sun</option>
+                  <option value={1}>{t("mon")}</option>
+                  <option value={2}>{t("tue")}</option>
+                  <option value={3}>{t("wed")}</option>
+                  <option value={4}>{t("thu")}</option>
+                  <option value={5}>{t("fri")}</option>
+                  <option value={6}>{t("sat")}</option>
+                  <option value={7}>{t("sun")}</option>
                 </select>
               </div>
               <div>
@@ -149,14 +150,14 @@ export function AdminToolsPage() {
           </div>
         </div>
 
-        <div className="card p-4">
+        <div className="card reveal p-4">
           <div className="text-sm font-bold">{t("admin_quick_actions")}</div>
           <div className="mt-3 space-y-2">
-            <div className="rounded-2xl border border-white/10 bg-white/5 p-3">
+            <div className="reveal rounded-2xl border border-white/10 bg-white/5 p-3" style={{ animationDelay: "0ms" }}>
               <div className="text-sm font-extrabold">{t("tip_news")}</div>
               <div className="mt-1 text-xs text-slate-300">{t("tip_news_sub")}</div>
             </div>
-            <div className="rounded-2xl border border-white/10 bg-white/5 p-3">
+            <div className="reveal rounded-2xl border border-white/10 bg-white/5 p-3" style={{ animationDelay: "50ms" }}>
               <div className="text-sm font-extrabold">{t("tip_analytics")}</div>
               <div className="mt-1 text-xs text-slate-300">{t("tip_analytics_sub")}</div>
             </div>

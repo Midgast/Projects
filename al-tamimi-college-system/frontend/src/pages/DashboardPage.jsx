@@ -1,6 +1,7 @@
 import React, { useEffect, useMemo, useState } from "react";
 import { Area, AreaChart, CartesianGrid, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
-import { AlertTriangle, CheckCircle2, TrendingUp } from "lucide-react";
+import { AlertTriangle, CheckCircle2, TrendingUp, CheckCircle, AlertTriangle as AlertIcon } from "lucide-react";
+import { useNavigate } from "react-router-dom";
 
 import { useAuth } from "../app/auth/AuthContext.jsx";
 import { apiFetch } from "../app/api.js";
@@ -10,14 +11,14 @@ import { AssistantWidget } from "../ui/AssistantWidget.jsx";
 
 function StatCard({ title, value, sub, icon: Icon }) {
   return (
-    <div className="card p-4">
+    <div className="card reveal p-4">
       <div className="flex items-start justify-between gap-4">
         <div>
           <div className="text-xs font-semibold text-slate-500">{title}</div>
           <div className="mt-2 text-2xl font-extrabold tracking-tight">{value}</div>
           {sub && <div className="mt-1 text-xs text-slate-500">{sub}</div>}
         </div>
-        <div className="grid h-10 w-10 place-items-center rounded-2xl bg-slate-50 text-slate-700">
+        <div className="grid h-10 w-10 place-items-center rounded-2xl border border-white/10 bg-white/5 text-white shadow-lg">
           <Icon size={18} />
         </div>
       </div>
@@ -28,8 +29,11 @@ function StatCard({ title, value, sub, icon: Icon }) {
 export function DashboardPage() {
   const { token, user } = useAuth();
   const { t } = useI18n();
+  const navigate = useNavigate();
   const [studentStats, setStudentStats] = useState(null);
   const [news, setNews] = useState([]);
+  const [tourOpen, setTourOpen] = useState(false);
+  const [tourStep, setTourStep] = useState(0);
 
   useEffect(() => {
     (async () => {
@@ -62,20 +66,50 @@ export function DashboardPage() {
       <div className="flex items-start justify-between gap-4">
         <div>
           <div className="text-xl font-extrabold tracking-tight">{t("dashboard")}</div>
-          <div className="mt-1 text-sm text-slate-500">Role-based view for {user?.role}</div>
+          <div className="mt-1 text-sm text-slate-300">
+            {t("role_based_view_for")} {user?.role}
+          </div>
         </div>
-        {user?.role === "student" && studentStats?.risk && <RiskPill level={studentStats.risk.level} score={studentStats.risk.score} />}
+        <div className="flex items-center gap-2">
+          <button type="button" className="btn-ghost" onClick={() => { setTourStep(0); setTourOpen(true); }}>
+            {t("demo_tour")}
+          </button>
+          {user?.role === "student" && studentStats?.risk && (
+            <span className={`badge-icon ${studentStats.risk.level}`}>
+              {studentStats.risk.level === "green" ? <CheckCircle size={14} /> : studentStats.risk.level === "yellow" ? <AlertIcon size={14} /> : <AlertTriangle size={14} />}
+            </span>
+          )}
+        </div>
       </div>
 
       <div className="mt-6 grid grid-cols-1 gap-4 md:grid-cols-3">
-        <StatCard title="Attendance" value={user?.role === "student" ? `${Math.round((studentStats?.attendanceRate ?? 1) * 100)}%` : "—"} sub={user?.role === "student" ? `${studentStats?.attended ?? 0}/${studentStats?.total ?? 0} classes` : "Student-only"} icon={CheckCircle2} />
-        <StatCard title="Performance Index" value={user?.role === "student" ? `${studentStats?.performanceIndex ?? 0}` : "—"} sub={user?.role === "student" ? `Avg grade: ${Math.round(studentStats?.avgGrade ?? 0)}` : "Student-only"} icon={TrendingUp} />
-        <StatCard title="Risk" value={user?.role === "student" ? (studentStats?.risk?.level || "—") : "—"} sub={user?.role === "student" ? "Green/Yellow/Red" : "Student-only"} icon={AlertTriangle} />
+        <StatCard
+          title={t("attendance")}
+          value={user?.role === "student" ? `${Math.round((studentStats?.attendanceRate ?? 1) * 100)}%` : "—"}
+          sub={
+            user?.role === "student"
+              ? `${studentStats?.attended ?? 0}/${studentStats?.total ?? 0} ${t("classes")}`
+              : t("student_only")
+          }
+          icon={CheckCircle2}
+        />
+        <StatCard
+          title={t("performance")}
+          value={user?.role === "student" ? studentStats?.performanceIndex?.toFixed(1) ?? "—" : "—"}
+          sub={t("pi_label")}
+          icon={TrendingUp}
+        />
+        <StatCard
+          title={t("risk")}
+          value={user?.role === "student" ? studentStats?.risk?.level.toUpperCase() ?? "—" : "—"}
+          sub={t("risk_label")}
+          icon={AlertTriangle}
+        />
       </div>
 
       <div className="mt-4 grid grid-cols-1 gap-4 md:grid-cols-3">
-        <div className="card p-4 md:col-span-2">
-          <div className="text-sm font-bold">Weekly trend (demo)</div>
+        <div className="card reveal p-4 md:col-span-2">
+          <div className="text-sm font-bold">{t("weekly_trend_demo")}</div>
           <div className="mt-3 h-52">
             <ResponsiveContainer width="100%" height="100%">
               <AreaChart data={perfSeries} margin={{ top: 10, right: 10, left: -10, bottom: 0 }}>
@@ -93,20 +127,20 @@ export function DashboardPage() {
               </AreaChart>
             </ResponsiveContainer>
           </div>
-          <div className="mt-2 text-xs text-slate-500">For hackathon demo: shows KPI trend with minimal visuals.</div>
+          <div className="mt-2 text-xs text-slate-300">{t("weekly_trend_sub")}</div>
         </div>
 
-        <div className="card p-4">
-          <div className="text-sm font-bold">Latest announcements</div>
+        <div className="card reveal p-4">
+          <div className="text-sm font-bold">{t("latest_announcements")}</div>
           <div className="mt-3 space-y-3">
-            {news.slice(0, 3).map((n) => (
-              <div key={n.id} className="rounded-xl border border-slate-200 bg-white p-3">
-                <div className="text-xs font-semibold text-slate-500">{new Date(n.published_at).toLocaleString()}</div>
+            {news.slice(0, 3).map((n, idx) => (
+              <div key={n.id} className="reveal rounded-xl border border-white/10 bg-white/5 p-3" style={{ animationDelay: `${idx * 60}ms` }}>
+                <div className="text-xs font-semibold text-slate-300">{new Date(n.published_at).toLocaleString()}</div>
                 <div className="mt-1 text-sm font-bold">{n.title}</div>
-                <div className="mt-1 text-xs text-slate-600 line-clamp-3">{n.body}</div>
+                <div className="mt-1 text-xs text-slate-200 line-clamp-3">{n.body}</div>
               </div>
             ))}
-            {news.length === 0 && <div className="text-sm text-slate-500">No announcements yet.</div>}
+            {news.length === 0 && <div className="text-sm text-slate-300">{t("no_announcements_yet")}</div>}
           </div>
         </div>
       </div>
@@ -114,6 +148,57 @@ export function DashboardPage() {
       <div className="mt-4">
         <AssistantWidget />
       </div>
+
+      {tourOpen && (
+        <div className="fixed inset-0 z-50 grid place-items-center bg-black/60 p-4">
+          <div className="card w-full max-w-xl p-5">
+            <div className="flex items-start justify-between gap-3">
+              <div>
+                <div className="text-lg font-extrabold">{t("tour_title")}</div>
+                <div className="mt-1 text-sm text-slate-300">{t("mission_text")}</div>
+              </div>
+              <button type="button" className="btn-ghost" onClick={() => setTourOpen(false)}>
+                {t("close")}
+              </button>
+            </div>
+
+            <div className="mt-4 space-y-2">
+              <div className={`rounded-2xl border p-3 ${tourStep === 0 ? "border-brand-400/30 bg-brand-500/10" : "border-white/10 bg-white/5"}`}>
+                <div className="text-sm font-extrabold">{t("tour_step_student")}</div>
+              </div>
+              <div className={`rounded-2xl border p-3 ${tourStep === 1 ? "border-brand-400/30 bg-brand-500/10" : "border-white/10 bg-white/5"}`}>
+                <div className="text-sm font-extrabold">{t("tour_step_teacher")}</div>
+              </div>
+              <div className={`rounded-2xl border p-3 ${tourStep === 2 ? "border-brand-400/30 bg-brand-500/10" : "border-white/10 bg-white/5"}`}>
+                <div className="text-sm font-extrabold">{t("tour_step_admin")}</div>
+              </div>
+            </div>
+
+            <div className="mt-4 flex flex-wrap items-center justify-between gap-2">
+              <div className="flex gap-2">
+                <button type="button" className="btn-ghost" disabled={tourStep === 0} onClick={() => setTourStep((s) => Math.max(0, s - 1))}>
+                  {t("tour_back")}
+                </button>
+                <button type="button" className="btn-primary" disabled={tourStep === 2} onClick={() => setTourStep((s) => Math.min(2, s + 1))}>
+                  {t("tour_next")}
+                </button>
+              </div>
+
+              <button
+                type="button"
+                className="btn-ghost"
+                onClick={() => {
+                  const path = tourStep === 0 ? "/student-goals" : tourStep === 1 ? "/journal" : "/analytics";
+                  setTourOpen(false);
+                  navigate(path);
+                }}
+              >
+                {t("tour_go")}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

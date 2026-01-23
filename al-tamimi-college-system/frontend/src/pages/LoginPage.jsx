@@ -10,8 +10,8 @@ export function LoginPage() {
   const navigate = useNavigate();
   const { lang, setLang, t } = useI18n();
 
-  const [email, setEmail] = useState("admin@altamimi.local");
-  const [password, setPassword] = useState("Admin123!");
+  const [email, setEmail] = useState("admin@example.com");
+  const [password, setPassword] = useState("admin");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
   const [logoLoaded, setLogoLoaded] = useState(false);
@@ -35,7 +35,7 @@ export function LoginPage() {
               </div>
               <div>
                 <div className="text-xl font-extrabold tracking-tight">{t("login_title")}</div>
-                <div className="mt-1 text-sm text-slate-300">Attendance · Risk · Analytics · Awards</div>
+                <div className="mt-1 text-sm text-slate-300">{t("login_subtitle")}</div>
               </div>
             </div>
 
@@ -52,8 +52,8 @@ export function LoginPage() {
                   type="button"
                   className="btn-ghost w-full"
                   onClick={() => {
-                    setEmail("admin@altamimi.local");
-                    setPassword("Admin123!");
+                    setEmail("admin@example.com");
+                    setPassword("admin");
                   }}
                 >
                   {t("admin")}
@@ -62,8 +62,8 @@ export function LoginPage() {
                   type="button"
                   className="btn-ghost w-full"
                   onClick={() => {
-                    setEmail("teacher@altamimi.local");
-                    setPassword("Teacher123!");
+                    setEmail("teacher@example.com");
+                    setPassword("teacher");
                   }}
                 >
                   {t("teacher")}
@@ -72,8 +72,8 @@ export function LoginPage() {
                   type="button"
                   className="btn-ghost w-full"
                   onClick={() => {
-                    setEmail("student@altamimi.local");
-                    setPassword("Student123!");
+                    setEmail("student@example.com");
+                    setPassword("student");
                   }}
                 >
                   {t("student")}
@@ -123,11 +123,11 @@ export function LoginPage() {
               )}
 
               <button className="btn-primary w-full" disabled={loading}>
-                {loading ? "..." : t("sign_in")}
+                {loading ? t("signing_in") : t("sign_in")}
               </button>
 
               <div className="text-center text-xs text-slate-400">
-                Demo mode works even without database.
+                {t("demo_mode_note")}
               </div>
             </form>
           </div>
@@ -139,35 +139,36 @@ export function LoginPage() {
                   <ShieldCheck size={18} />
                 </div>
                 <div>
-                  <div className="text-sm font-extrabold">Designed for judges</div>
-                  <div className="mt-1 text-sm text-slate-300">Big dashboards, clear indicators, instant story.</div>
+                  <div className="text-sm font-extrabold">{t("designed_for_judges")}</div>
+                  <div className="mt-1 text-sm text-slate-300">{t("judges_subtitle")}</div>
                 </div>
               </div>
 
               <div className="mt-6 grid grid-cols-1 gap-3">
                 <div className="rounded-2xl border border-white/10 bg-white/5 p-4">
-                  <div className="text-xs font-semibold text-slate-300">Risk indicator</div>
+                  <div className="text-xs font-semibold text-slate-300">{t("mission_title")}</div>
+                  <div className="mt-2 text-sm text-slate-200">{t("mission_text")}</div>
+                </div>
+
+                <div className="rounded-2xl border border-white/10 bg-white/5 p-4">
+                  <div className="text-xs font-semibold text-slate-300">{t("risk_indicator")}</div>
                   <div className="mt-3 flex flex-wrap items-center gap-2">
-                    <span className="badge border border-emerald-400/20 bg-emerald-500/10 text-emerald-100">Green</span>
-                    <span className="badge border border-amber-400/20 bg-amber-500/10 text-amber-100">Yellow</span>
-                    <span className="badge border border-rose-400/20 bg-rose-500/10 text-rose-100">Red</span>
+                    <span className="badge border border-emerald-400/20 bg-emerald-500/10 text-emerald-100">{t("green")}</span>
+                    <span className="badge border border-amber-400/20 bg-amber-500/10 text-amber-100">{t("yellow")}</span>
+                    <span className="badge border border-rose-400/20 bg-rose-500/10 text-rose-100">{t("red")}</span>
                   </div>
                 </div>
 
                 <div className="rounded-2xl border border-white/10 bg-white/5 p-4">
-                  <div className="text-xs font-semibold text-slate-300">MVP modules</div>
-                  <div className="mt-2 text-sm text-slate-200">
-                    Auth & roles · Schedule · Attendance · Analytics · Announcements · Badges · PDF/Excel export
-                  </div>
+                  <div className="text-xs font-semibold text-slate-300">{t("mvp_modules")}</div>
+                  <div className="mt-2 text-sm text-slate-200">Auth · Roles · Schedule · Attendance · Analytics · News · Badges · PDF/Excel</div>
                 </div>
               </div>
             </div>
 
             <div className="p-6 md:p-8" style={{ backgroundImage: "linear-gradient(135deg, rgba(37,99,235,0.35) 0%, rgba(79,70,229,0.30) 40%, rgba(147,51,234,0.25) 100%)" }}>
-              <div className="text-sm font-extrabold">AL TAMIMI identity</div>
-              <div className="mt-1 text-sm text-slate-200/90">
-                Bold gradients, glass cards, and vibrant indicators.
-              </div>
+              <div className="text-sm font-extrabold">{t("identity_title")}</div>
+              <div className="mt-1 text-sm text-slate-200/90">{t("identity_subtitle")}</div>
             </div>
           </div>
         </div>

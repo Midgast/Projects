@@ -48,7 +48,7 @@ export function AssistantWidget() {
       setChat((c) => [...c, { role: "assistant", text: res.answer }]);
       if (res.suggestions) setSuggestions(res.suggestions);
     } catch (e) {
-      setChat((c) => [...c, { role: "assistant", text: `Error: ${e.message}` }]);
+      setChat((c) => [...c, { role: "assistant", text: `${e.message}` }]);
     }
   }
 
@@ -98,7 +98,7 @@ export function AssistantWidget() {
               )}
             </div>
           ))}
-          {cards.length === 0 && <div className="text-sm text-slate-300">No insights.</div>}
+          {cards.length === 0 && <div className="text-sm text-slate-300">{t("no_data_short")}</div>}
         </div>
       )}
 

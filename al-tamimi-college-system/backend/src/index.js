@@ -14,6 +14,10 @@ import { analyticsRouter } from "./routes/analytics.js";
 import { exportRouter } from "./routes/export.js";
 import { metaRouter } from "./routes/meta.js";
 import { assistantRouter } from "./routes/assistant.js";
+import { pollsRouter } from "./routes/polls.js";
+import { gamificationRouter } from "./routes/gamification.js";
+import { parentsRouter } from "./routes/parents.js";
+import { initSocket } from "./socket.js";
 import { pool } from "./db.js";
 
 const app = express();
@@ -40,6 +44,9 @@ app.use("/api/analytics", analyticsRouter);
 app.use("/api/export", exportRouter);
 app.use("/api/meta", metaRouter);
 app.use("/api/assistant", assistantRouter);
+app.use("/api/polls", pollsRouter);
+app.use("/api/gamification", gamificationRouter);
+app.use("/api/parents", parentsRouter);
 
 app.use((err, req, res, next) => {
   const status = err.status || 500;
@@ -65,9 +72,12 @@ async function main() {
   }
 
   const port = Number(process.env.PORT || 4000);
-  app.listen(port, () => {
+  const server = app.listen(port, () => {
     console.log(`API listening on http://localhost:${port}`);
   });
+
+  // Init Socket.IO
+  initSocket(server);
 }
 
 main();

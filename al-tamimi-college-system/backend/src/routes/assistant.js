@@ -2,7 +2,7 @@ import { Router } from "express";
 import { z } from "zod";
 
 import { query } from "../db.js";
-import { requireAuth } from "../middleware/auth.js";
+import { requireAuth, requireRole } from "../middleware/auth.js";
 import { demo, demoMode, computeStudentStats } from "../demoStore.js";
 
 export const assistantRouter = Router();
@@ -14,6 +14,34 @@ function makeCard({ title, severity, message, actions }) {
     message,
     actions: actions || [],
   };
+}
+
+function buildInterventionPlan({ studentName, groupName, riskLevel }) {
+  const base = [
+    "Проверить посещаемость за 7 дней и выявить причины пропусков",
+    "Назначить 15-мин консультацию и зафиксировать план обучения",
+    "Поставить 2 короткие цели на неделю и проверить прогресс",
+  ];
+
+  if (riskLevel === "red") {
+    base.unshift("Срочное действие: связаться со студентом сегодня и согласовать поддержку");
+    base.push("Если ситуация не меняется — подключить куратора/администрацию");
+  } else if (riskLevel === "yellow") {
+    base.unshift("Сделать профилактику: короткая встреча и уточнение пробелов");
+  } else {
+    base.unshift("Поддерживать мотивацию: отметить прогресс и дать следующую цель");
+  }
+
+  const notification = {
+    subject: `Risk → Action: ${studentName}`,
+    body:
+      `Студент: ${studentName}${groupName ? ` (${groupName})` : ""}\n` +
+      `Уровень риска: ${riskLevel.toUpperCase()}\n\n` +
+      `План на 7 дней:\n` +
+      base.map((x, i) => `${i + 1}. ${x}`).join("\n"),
+  };
+
+  return { plan: base, notification };
 }
 
 async function getStudentStatsDb(studentId) {
@@ -251,6 +279,60 @@ assistantRouter.get("/insights", requireAuth, async (req, res, next) => {
     next(e);
   }
 });
+
+assistantRouter.post(
+  "/intervention-plan",
+  requireAuth,
+  requireRole("teacher", "admin"),
+  async (req, res, next) => {
+    try {
+      const body = z.object({ studentId: z.number().int() }).parse(req.body);
+
+      if (demoMode()) {
+        const stats = computeStudentStats();
+        const out = buildInterventionPlan({
+          studentName: demo.users.student.fullName,
+          groupName: demo.groups[0]?.name,
+          riskLevel: stats.risk.level,
+        });
+        return res.json({
+          studentId: demo.users.student.id,
+          studentName: demo.users.student.fullName,
+          groupName: demo.groups[0]?.name,
+          risk: stats.risk,
+          ...out,
+        });
+      }
+
+      const studentRes = await query(
+        `select u.full_name as student_name, g.name as group_name
+         from users u
+         left join groups g on g.id = u.group_id
+         where u.id=$1 and u.role='student'`,
+        [body.studentId]
+      );
+      const student = studentRes.rows[0];
+      if (!student) return res.status(404).json({ error: { message: "Student not found" } });
+
+      const stats = await getStudentStatsDb(body.studentId);
+      const out = buildInterventionPlan({
+        studentName: student.student_name,
+        groupName: student.group_name,
+        riskLevel: stats.risk.level,
+      });
+
+      res.json({
+        studentId: body.studentId,
+        studentName: student.student_name,
+        groupName: student.group_name,
+        risk: stats.risk,
+        ...out,
+      });
+    } catch (e) {
+      next(e);
+    }
+  }
+);
 
 assistantRouter.post("/chat", requireAuth, async (req, res, next) => {
   try {

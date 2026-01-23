@@ -13,6 +13,8 @@ import { AdminAnalyticsPage } from "../pages/AdminAnalyticsPage.jsx";
 import { StudentGoalsPage } from "../pages/StudentGoalsPage.jsx";
 import { TeacherToolsPage } from "../pages/TeacherToolsPage.jsx";
 import { AdminToolsPage } from "../pages/AdminToolsPage.jsx";
+import { GamificationPage } from "../pages/GamificationPage.jsx";
+import { ParentPage } from "../pages/ParentPage.jsx";
 
 function Protected({ children }) {
   const { token } = useAuth();
@@ -41,6 +43,8 @@ export function App() {
         <Route path="student-goals" element={<StudentGoalsPage />} />
         <Route path="teacher-tools" element={<TeacherToolsPage />} />
         <Route path="admin-tools" element={<AdminToolsPage />} />
+        <Route path="gamification" element={<GamificationPage />} />
+        <Route path="parent" element={<ParentPage />} />
       </Route>
     </Routes>
   );
