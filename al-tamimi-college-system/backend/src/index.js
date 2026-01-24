@@ -106,7 +106,7 @@ async function initializeOptimizers() {
 }
 
 // Запуск сервера с оптимизацией
-const PORT = process.env.PORT || 4000;
+const PORT = process.env.PORT || 4002;
 
 // Инициализируем оптимизаторы перед запуском сервера
 initializeOptimizers().then(() => {
