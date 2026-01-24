@@ -6,16 +6,15 @@ import { LoginPage } from "../pages/LoginPage.jsx";
 import { Shell } from "../ui/Shell.jsx";
 import { DashboardPage } from "../pages/DashboardPage.jsx";
 import { SchedulePage } from "../pages/SchedulePage.jsx";
+import { JournalPage } from "../pages/JournalPage.jsx";
 import { NewsPage } from "../pages/NewsPage.jsx";
 import { BadgesPage } from "../pages/BadgesPage.jsx";
 import { AdminAnalyticsPage } from "../pages/AdminAnalyticsPage.jsx";
-import { AdminToolsPage } from "../pages/AdminToolsPage.jsx";
+import { StudentGoalsPage } from "../pages/StudentGoalsPage.jsx";
 import { TeacherToolsPage } from "../pages/TeacherToolsPage.jsx";
-import { JournalPage } from "../pages/JournalPage.jsx";
+import { AdminToolsPage } from "../pages/AdminToolsPage.jsx";
 import { GamificationPage } from "../pages/GamificationPage.jsx";
 import { ParentPage } from "../pages/ParentPage.jsx";
-import { GoalsPage } from "../pages/GoalsPage.jsx";
-import { SocialPage } from "../pages/SocialPage.jsx";
 
 function Protected({ children }) {
   const { token } = useAuth();
@@ -41,12 +40,11 @@ export function App() {
         <Route path="news" element={<NewsPage />} />
         <Route path="badges" element={<BadgesPage />} />
         <Route path="analytics" element={<AdminAnalyticsPage />} />
-        <Route path="goals" element={<GoalsPage />} />
-        <Route path="tools" element={<TeacherToolsPage />} />
+        <Route path="student-goals" element={<StudentGoalsPage />} />
+        <Route path="teacher-tools" element={<TeacherToolsPage />} />
         <Route path="admin-tools" element={<AdminToolsPage />} />
         <Route path="gamification" element={<GamificationPage />} />
         <Route path="parent" element={<ParentPage />} />
-        <Route path="social" element={<SocialPage />} />
       </Route>
     </Routes>
   );
