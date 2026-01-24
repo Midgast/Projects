@@ -20,14 +20,14 @@ export function LoginPage() {
   // Проверяем соединение с API при загрузке страницы
   useEffect(() => {
     const testConnection = async () => {
-      console.log('Testing API connection...');
+      // console.log('Testing API connection...');
       try {
         const isConnected = await checkApiConnection();
-        console.log('API connection result:', isConnected);
+        // console.log('API connection result:', isConnected);
         if (!isConnected) {
           setError("Backend not responding. Please restart backend server.");
         } else {
-          console.log('✅ Backend is working!');
+          // console.log('✅ Backend is working!');
           // Если есть старая ошибка, очищаем ее
           if (error && error.includes("Backend not responding")) {
             setError("");

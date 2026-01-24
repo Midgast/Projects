@@ -14,10 +14,10 @@ export async function checkApiConnection() {
         "Content-Type": "application/json",
       },
     });
-    console.log('Health check response:', response.status, response.ok);
+    // console.log('Health check response:', response.status, response.ok);
     return response.ok;
   } catch (error) {
-    console.error('Health check failed:', error);
+    // console.error('Health check failed:', error);
     return false;
   }
 }
@@ -47,7 +47,7 @@ export async function downloadFile(path, { token, filename } = {}) {
 }
 
 export async function apiFetch(path, { token, method = "GET", body } = {}) {
-  console.log('API Request:', { path, method, body, token: token ? 'Bearer ***' : 'none' });
+  // console.log('API Request:', { path, method, body, token: token ? 'Bearer ***' : 'none' });
   
   const res = await fetch(apiUrl(path), {
     method,
@@ -58,7 +58,7 @@ export async function apiFetch(path, { token, method = "GET", body } = {}) {
     body: body ? JSON.stringify(body) : undefined,
   });
 
-  console.log('API Response:', { status: res.status, ok: res.ok, url: res.url });
+  // console.log('API Response:', { status: res.status, ok: res.ok, url: res.url });
 
   const isJson = (res.headers.get("content-type") || "").includes("application/json");
   const data = isJson ? await res.json() : null;

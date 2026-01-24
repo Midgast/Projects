@@ -25,11 +25,10 @@ import { socialRouter } from "./routes/social.js";
 import { initSocket } from "./socket.js";
 
 // Импорты оптимизации
-import { performanceMiddleware, initializePerformanceOptimizer } from "./lib/performanceOptimizer.js";
-import { databaseOptimizationMiddleware, initializeDatabaseOptimizer } from "./lib/databaseOptimizer.js";
-import { memoryOptimizationMiddleware, initializeMemoryOptimizer } from "./lib/memoryOptimizer.js";
+// import { performanceMiddleware, initializePerformanceOptimizer } from "./lib/performanceOptimizer.js";
+// import { databaseOptimizationMiddleware, initializeDatabaseOptimizer } from "./lib/databaseOptimizer.js";
+// import { memoryOptimizationMiddleware, initializeMemoryOptimizer } from "./lib/memoryOptimizer.js";
 import { metricsMiddleware } from "./lib/analyticsMetrics.js";
-import { cacheMiddleware } from "./lib/analyticsCache.js";
 
 const app = express();
 
@@ -45,9 +44,10 @@ app.use(morgan("dev"));
 
 // Оптимизационные middleware (порядок важен!)
 app.use(metricsMiddleware()); // Сбор метрик
-app.use(performanceMiddleware()); // Оптимизация производительности
-app.use(memoryOptimizationMiddleware()); // Оптимизация памяти
-app.use(databaseOptimizationMiddleware()); // Оптимизация БД
+// app.use(performanceMiddleware()); // Оптимизация производительности
+// app.use(memoryOptimizationMiddleware()); // Оптимизация памяти
+// app.use(databaseOptimizationMiddleware()); // Оптимизация базы данных
+// app.use(cacheMiddleware()); // Кэширование
 
 app.get("/health", (req, res) => res.json({ ok: true }));
 
@@ -88,18 +88,18 @@ app.use((err, req, res, next) => {
 // Инициализация оптимизаторов
 async function initializeOptimizers() {
   try {
-    console.log('🚀 Initializing performance optimizers...');
+    // console.log('🚀 Initializing performance optimizers...');
     
-    await initializePerformanceOptimizer();
-    console.log('✅ Performance optimizer initialized');
+    // await initializePerformanceOptimizer();
+    // console.log('✅ Performance optimizer initialized');
     
-    await initializeDatabaseOptimizer();
-    console.log('✅ Database optimizer initialized');
+    // await initializeDatabaseOptimizer();
+    // console.log('✅ Database optimizer initialized');
     
-    await initializeMemoryOptimizer();
-    console.log('✅ Memory optimizer initialized');
+    // await initializeMemoryOptimizer();
+    // console.log('✅ Memory optimizer initialized');
     
-    console.log('🎉 All optimizers initialized successfully!');
+    // console.log('🎉 All optimizers initialized successfully!');
   } catch (error) {
     console.error('❌ Failed to initialize optimizers:', error);
   }
@@ -112,25 +112,25 @@ const PORT = process.env.PORT || 4000;
 initializeOptimizers().then(() => {
   const server = app.listen(PORT, () => {
     console.log(`🚀 Server running on http://localhost:${PORT}`);
-    console.log(`📊 Performance monitoring enabled`);
-    console.log(`🧠 Memory optimization enabled`);
-    console.log(`💾 Database optimization enabled`);
-    console.log(`⚡ Cache optimization enabled`);
+    // console.log(`📊 Performance monitoring enabled`);
+    // console.log(`🧠 Memory optimization enabled`);
+    // console.log(`💾 Database optimization enabled`);
+    // console.log(`⚡ Cache optimization enabled`);
   });
 
   // Graceful shutdown
   process.on('SIGTERM', () => {
-    console.log('SIGTERM received, shutting down gracefully');
+    // console.log('SIGTERM received, shutting down gracefully');
     server.close(() => {
-      console.log('Server closed');
+      // console.log('Server closed');
       process.exit(0);
     });
   });
 
   process.on('SIGINT', () => {
-    console.log('SIGINT received, shutting down gracefully');
+    // console.log('SIGINT received, shutting down gracefully');
     server.close(() => {
-      console.log('Server closed');
+      // console.log('Server closed');
       process.exit(0);
     });
   });

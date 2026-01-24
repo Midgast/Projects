@@ -1,7 +1,7 @@
 import { Router } from "express";
 import { requireAuth, requireRole } from "../middleware/auth.js";
 import { computeStudentStats, computeGroupStats, getTopPerformers, getAtRiskStudents, demo, demoMode } from "../demoStore.js";
-import { cacheMiddleware } from "../lib/analyticsCache.js";
+// import { cacheMiddleware } from "../lib/analyticsCache.js";
 import { measurePerformance } from "../lib/analyticsMetrics.js";
 
 export const analyticsExtendedRouter = Router();
@@ -10,7 +10,7 @@ export const analyticsExtendedRouter = Router();
 analyticsExtendedRouter.get("/overview", 
   requireAuth, 
   requireRole("admin"), 
-  cacheMiddleware(5 * 60 * 1000), // 5 минут кэш
+  // cacheMiddleware(5 * 60 * 1000), // 5 минут кэш
   async (req, res, next) => {
     try {
       const data = await measurePerformance("analytics_overview", async () => {
