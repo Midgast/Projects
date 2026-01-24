@@ -18,8 +18,7 @@ import { ParentPage } from "../pages/ParentPage.jsx";
 
 function Protected({ children }) {
   const { token } = useAuth();
-  if (!token) return <Navigate to="/login" replace />;
-  return children;
+  return token ? children : <Navigate to="/login" replace />;
 }
 
 export function App() {
@@ -30,22 +29,25 @@ export function App() {
         path="/*"
         element={
           <Protected>
-            <Shell />
+            <Shell>
+              <Routes>
+                <Route path="/" element={<DashboardPage />} />
+                <Route path="/dashboard" element={<DashboardPage />} />
+                <Route path="/schedule" element={<SchedulePage />} />
+                <Route path="/journal" element={<JournalPage />} />
+                <Route path="/news" element={<NewsPage />} />
+                <Route path="/badges" element={<BadgesPage />} />
+                <Route path="/analytics" element={<AdminAnalyticsPage />} />
+                <Route path="/goals" element={<StudentGoalsPage />} />
+                <Route path="/teacher-tools" element={<TeacherToolsPage />} />
+                <Route path="/admin-tools" element={<AdminToolsPage />} />
+                <Route path="/gamification" element={<GamificationPage />} />
+                <Route path="/parent" element={<ParentPage />} />
+              </Routes>
+            </Shell>
           </Protected>
         }
-      >
-        <Route index element={<DashboardPage />} />
-        <Route path="schedule" element={<SchedulePage />} />
-        <Route path="journal" element={<JournalPage />} />
-        <Route path="news" element={<NewsPage />} />
-        <Route path="badges" element={<BadgesPage />} />
-        <Route path="analytics" element={<AdminAnalyticsPage />} />
-        <Route path="student-goals" element={<StudentGoalsPage />} />
-        <Route path="teacher-tools" element={<TeacherToolsPage />} />
-        <Route path="admin-tools" element={<AdminToolsPage />} />
-        <Route path="gamification" element={<GamificationPage />} />
-        <Route path="parent" element={<ParentPage />} />
-      </Route>
+      />
     </Routes>
   );
 }

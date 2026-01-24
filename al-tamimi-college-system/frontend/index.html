@@ -13,9 +13,10 @@
     <div id="root"></div>
     <script type="module" src="/src/main.jsx"></script>
     <script>
-      if ("serviceWorker" in navigator) {
-        navigator.serviceWorker.register("/sw.js");
-      }
+      // Service worker disabled for stability
+      // if ("serviceWorker" in navigator) {
+      //   navigator.serviceWorker.register("/sw.js");
+      // }
     </script>
   </body>
 </html>
