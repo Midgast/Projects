@@ -1,11 +1,11 @@
 export const demo = {
   users: {
-    admin: { id: 1, email: "admin@admin.com", fullName: "Admin AL TAMIMI", role: "admin", groupId: null },
-    teacher: { id: 2, email: "teacher@school.com", fullName: "Aisha Al-Mutairi", role: "teacher", groupId: null },
-    student: { id: 3, email: "student@school.com", fullName: "Omar Al Tamimi", role: "student", groupId: 1 },
-    parent: { id: 4, email: "parent@school.com", fullName: "Parent Al Tamimi", role: "parent", groupId: null },
-    student2: { id: 5, email: "student2@school.com", fullName: "Fatima Al-Rashid", role: "student", groupId: 1 },
-    student3: { id: 6, email: "student3@school.com", fullName: "Khalid Al-Saud", role: "student", groupId: 1 },
+    admin: { id: 1, email: "admin@altamimi.local", fullName: "Admin AL TAMIMI", role: "admin", groupId: null },
+    teacher: { id: 2, email: "teacher@altamimi.local", fullName: "Aisha Al-Mutairi", role: "teacher", groupId: null },
+    student: { id: 3, email: "student@altamimi.local", fullName: "Omar Al Tamimi", role: "student", groupId: 1 },
+    parent: { id: 4, email: "parent@altamimi.local", fullName: "Parent Al Tamimi", role: "parent", groupId: null },
+    student2: { id: 5, email: "student2@altamimi.local", fullName: "Fatima Al-Rashid", role: "student", groupId: 1 },
+    student3: { id: 6, email: "student3@altamimi.local", fullName: "Khalid Al-Saud", role: "student", groupId: 1 },
   },
   groups: [{ id: 1, name: "CS-101" }],
   subjects: [

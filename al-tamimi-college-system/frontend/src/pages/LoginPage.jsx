@@ -11,7 +11,7 @@ export function LoginPage() {
   const navigate = useNavigate();
   const { lang, setLang, t } = useI18n();
 
-  const [email, setEmail] = useState("admin@admin.com");
+  const [email, setEmail] = useState("admin@altamimi.local");
   const [password, setPassword] = useState("admin");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
