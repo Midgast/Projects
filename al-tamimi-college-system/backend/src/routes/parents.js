@@ -99,7 +99,7 @@ parentsRouter.get("/student/:id/progress", requireAuth, async (req, res, next) =
     const attendance = att.rows[0].total ? (att.rows[0].attended / att.rows[0].total) * 100 : 0;
 
     // Performance
-    const perf = await.query(
+    const perf = await query(
       `select performance_index, risk_level from students where id = $1`,
       [Number(id)]
     );

@@ -1,8 +1,11 @@
 export const demo = {
   users: {
-    admin: { id: 1, email: "admin@altamimi.local", fullName: "Admin AL TAMIMI", role: "admin", groupId: null },
-    teacher: { id: 2, email: "teacher@altamimi.local", fullName: "Aisha Al-Mutairi", role: "teacher", groupId: null },
-    student: { id: 3, email: "student@altamimi.local", fullName: "Omar Al Tamimi", role: "student", groupId: 1 },
+    admin: { id: 1, email: "admin@admin.com", fullName: "Admin AL TAMIMI", role: "admin", groupId: null },
+    teacher: { id: 2, email: "teacher@school.com", fullName: "Aisha Al-Mutairi", role: "teacher", groupId: null },
+    student: { id: 3, email: "student@school.com", fullName: "Omar Al Tamimi", role: "student", groupId: 1 },
+    parent: { id: 4, email: "parent@school.com", fullName: "Parent Al Tamimi", role: "parent", groupId: null },
+    student2: { id: 5, email: "student2@school.com", fullName: "Fatima Al-Rashid", role: "student", groupId: 1 },
+    student3: { id: 6, email: "student3@school.com", fullName: "Khalid Al-Saud", role: "student", groupId: 1 },
   },
   groups: [{ id: 1, name: "CS-101" }],
   subjects: [
@@ -76,6 +79,102 @@ export const demo = {
       subject_id: 1,
       teacher_id: 2,
     },
+    {
+      id: 2,
+      date: new Date(Date.now() - 86400000).toISOString().slice(0, 10),
+      status: "late",
+      grade: 92,
+      comment: "Good participation",
+      student_id: 3,
+      student_name: "Omar Al Tamimi",
+      group_id: 1,
+      subject_id: 2,
+      teacher_id: 2,
+    },
+    {
+      id: 3,
+      date: new Date(Date.now() - 172800000).toISOString().slice(0, 10),
+      status: "absent",
+      grade: 0,
+      comment: "Absent",
+      student_id: 3,
+      student_name: "Omar Al Tamimi",
+      group_id: 1,
+      subject_id: 1,
+      teacher_id: 2,
+    },
+    {
+      id: 4,
+      date: new Date().toISOString().slice(0, 10),
+      status: "present",
+      grade: 95,
+      comment: "Excellent",
+      student_id: 5,
+      student_name: "Fatima Al-Rashid",
+      group_id: 1,
+      subject_id: 1,
+      teacher_id: 2,
+    },
+    {
+      id: 5,
+      date: new Date(Date.now() - 86400000).toISOString().slice(0, 10),
+      status: "present",
+      grade: 87,
+      comment: "Good work",
+      student_id: 5,
+      student_name: "Fatima Al-Rashid",
+      group_id: 1,
+      subject_id: 2,
+      teacher_id: 2,
+    },
+    {
+      id: 6,
+      date: new Date(Date.now() - 172800000).toISOString().slice(0, 10),
+      status: "late",
+      grade: 90,
+      comment: "Slightly late",
+      student_id: 5,
+      student_name: "Fatima Al-Rashid",
+      group_id: 1,
+      subject_id: 1,
+      teacher_id: 2,
+    },
+    {
+      id: 7,
+      date: new Date().toISOString().slice(0, 10),
+      status: "present",
+      grade: 78,
+      comment: "Good effort",
+      student_id: 6,
+      student_name: "Khalid Al-Saud",
+      group_id: 1,
+      subject_id: 1,
+      teacher_id: 2,
+    },
+    {
+      id: 8,
+      date: new Date(Date.now() - 86400000).toISOString().slice(0, 10),
+      status: "absent",
+      grade: 0,
+      comment: "Absent",
+      student_id: 6,
+      student_name: "Khalid Al-Saud",
+      group_id: 1,
+      subject_id: 2,
+      teacher_id: 2,
+    },
+    {
+      id: 9,
+      date: new Date(Date.now() - 172800000).toISOString().slice(0, 10),
+      status: "present",
+      grade: 82,
+      comment: "Improving",
+      student_id: 6,
+      student_name: "Khalid Al-Saud",
+      group_id: 1,
+      subject_id: 1,
+      teacher_id: 2,
+    },
   ],
 };
 
@@ -83,22 +182,61 @@ export function demoMode() {
   return process.env.DEMO_MODE === "true";
 }
 
-export function computeStudentStats() {
-  const rows = demo.attendance.filter((a) => a.student_id === 3);
-  const attended = rows.filter((r) => r.status === "present" || r.status === "late").length;
-  const total = rows.length;
-  const avgGrade = total ? rows.reduce((s, r) => s + (r.grade ?? 0), 0) / total : 0;
-  const attendanceRate = total ? attended / total : 1;
-  const performanceIndex = Math.round(0.6 * avgGrade + 0.4 * attendanceRate * 100);
-  const score = Math.round(0.55 * attendanceRate * 100 + 0.45 * performanceIndex);
-  const level = score >= 75 ? "green" : score >= 55 ? "yellow" : "red";
+export function computeStudentStats(studentId = null) {
+  // Если studentId не указан, считаем для всех студентов
+  const studentIds = studentId ? [studentId] : [3, 5, 6];
+  const results = [];
+  
+  for (const id of studentIds) {
+    const rows = demo.attendance.filter((a) => a.student_id === id);
+    const attended = rows.filter((r) => r.status === "present" || r.status === "late").length;
+    const total = rows.length;
+    const avgGrade = total ? rows.reduce((s, r) => s + (r.grade ?? 0), 0) / total : 0;
+    const attendanceRate = total ? attended / total : 1;
+    const performanceIndex = Math.round(0.6 * avgGrade + 0.4 * attendanceRate * 100);
+    const score = Math.round(0.55 * attendanceRate * 100 + 0.45 * performanceIndex);
+    const level = score >= 75 ? "green" : score >= 55 ? "yellow" : "red";
 
+    results.push({
+      studentId: id,
+      studentName: demo.users[`student${id === 3 ? '' : id === 5 ? '2' : '3'}`]?.fullName || `Student ${id}`,
+      attended,
+      total,
+      attendanceRate,
+      avgGrade,
+      performanceIndex,
+      risk: { level, score },
+    });
+  }
+  
+  return studentId ? results[0] : results;
+}
+
+export function computeGroupStats() {
+  const allStats = computeStudentStats();
+  const totalStudents = allStats.length;
+  const avgAttendanceRate = allStats.reduce((sum, s) => sum + s.attendanceRate, 0) / totalStudents;
+  const avgGrade = allStats.reduce((sum, s) => sum + s.avgGrade, 0) / totalStudents;
+  const avgPerformanceIndex = allStats.reduce((sum, s) => sum + s.performanceIndex, 0) / totalStudents;
+  
   return {
-    attended,
-    total,
-    attendanceRate,
+    groupId: 1,
+    groupName: demo.groups[0].name,
+    totalStudents,
+    avgAttendanceRate,
     avgGrade,
-    performanceIndex,
-    risk: { level, score },
+    avgPerformanceIndex,
   };
+}
+
+export function getTopPerformers(limit = 5) {
+  const allStats = computeStudentStats();
+  return allStats
+    .sort((a, b) => b.performanceIndex - a.performanceIndex)
+    .slice(0, limit);
+}
+
+export function getAtRiskStudents() {
+  const allStats = computeStudentStats();
+  return allStats.filter(s => s.risk.level === 'red' || s.risk.level === 'yellow');
 }

@@ -1,0 +1,511 @@
+/* Адаптивные стили для оптимизации производительности */
+
+/* Базовые переменные для адаптивности */
+:root {
+  --animation-duration-multiplier: 1;
+  --max-complexity: full;
+  --cache-duration-multiplier: 1;
+  --image-quality: high;
+  --loading-strategy: full;
+  
+  /* Пороги производительности */
+  --fast-animation: 0.15s;
+  --normal-animation: 0.3s;
+  --slow-animation: 0.5s;
+  
+  /* Адаптивные размеры */
+  --container-padding: clamp(1rem, 3vw, 2rem);
+  --card-padding: clamp(0.75rem, 2vw, 1.5rem);
+  --border-radius: clamp(0.5rem, 1.5vw, 1rem);
+}
+
+/* Оптимизации для медленного соединения */
+.slow-connection {
+  /* Уменьшаем анимации */
+  --animation-duration-multiplier: 0.3;
+  
+  /* Уменьшаем качество изображений */
+  --image-quality: low;
+  
+  /* Увеличиваем время кэширования */
+  --cache-duration-multiplier: 3;
+}
+
+.slow-connection * {
+  animation-duration: calc(var(--normal-animation) * var(--animation-duration-multiplier)) !important;
+  transition-duration: calc(var(--normal-animation) * var(--animation-duration-multiplier)) !important;
+}
+
+.slow-connection img {
+  filter: blur(0.5px);
+  image-rendering: optimizeSpeed;
+}
+
+/* Оптимизации для низкой энергии */
+.low-power {
+  --animation-duration-multiplier: 0.2;
+  --max-complexity: simple;
+}
+
+.low-power * {
+  animation: none !important;
+  transition: none !important;
+  transform: none !important;
+}
+
+.low-power .card {
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+.low-power .glassmorphism {
+  backdrop-filter: none;
+  background: rgba(255, 255, 255, 0.1);
+}
+
+/* Оптимизации для слабого CPU */
+.low-cpu {
+  --max-complexity: simple;
+}
+
+.low-cpu .animated-gradient {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  animation: none;
+}
+
+.low-cpu .floating {
+  animation: none;
+  transform: none;
+}
+
+.low-cpu .particle {
+  display: none;
+}
+
+/* Оптимизации для низкой памяти */
+.low-memory {
+  --max-complexity: minimal;
+}
+
+.low-memory .virtual-list {
+  max-height: 50vh;
+  overflow-y: auto;
+}
+
+.low-memory .image-gallery {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+  gap: 0.5rem;
+}
+
+.low-memory .image-gallery img {
+  max-width: 100%;
+  height: auto;
+}
+
+/* Оптимизации для офлайн режима */
+.offline {
+  --loading-strategy: essential;
+}
+
+.offline .online-only {
+  display: none !important;
+}
+
+.offline .offline-indicator {
+  display: block !important;
+}
+
+/* Адтивные анимации */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+.reduce-animations * {
+  animation: none !important;
+  transition: none !important;
+}
+
+/* Адтивное качество изображений */
+[data-image-quality="low"] img {
+  filter: blur(0.3px);
+  image-rendering: optimizeSpeed;
+  image-rendering: -webkit-optimize-contrast;
+}
+
+[data-image-quality="low"] .background-image {
+  background-size: cover;
+  background-position: center;
+  filter: blur(1px);
+}
+
+[data-image-quality="high"] img {
+  image-rendering: -webkit-optimize-contrast;
+  image-rendering: crisp-edges;
+}
+
+/* Адтивная загрузка данных */
+[data-loading-strategy="minimal"] .non-essential {
+  display: none !important;
+}
+
+[data-loading-strategy="essential"] .optional {
+  display: none !important;
+}
+
+[data-loading-strategy="full"] .lazy-load {
+  opacity: 0;
+  transition: opacity 0.3s ease;
+}
+
+[data-loading-strategy="full"] .lazy-load.loaded {
+  opacity: 1;
+}
+
+/* Виртуализация списков */
+.virtual-list {
+  height: 100%;
+  overflow-y: auto;
+  position: relative;
+}
+
+.virtual-list-item {
+  position: absolute;
+  width: 100%;
+  will-change: transform;
+}
+
+.virtual-list-spacer {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 1px;
+  pointer-events: none;
+}
+
+/* Оптимизированные карточки */
+.card-optimized {
+  contain: layout style paint;
+  transform: translateZ(0);
+  backface-visibility: hidden;
+  perspective: 1000px;
+}
+
+.card-optimized:hover {
+  transform: translateZ(0) scale(1.02);
+  will-change: transform;
+}
+
+/* Оптимизированные изображения */
+.img-optimized {
+  contain: layout paint;
+  object-fit: cover;
+  will-change: transform;
+}
+
+.img-optimized:hover {
+  transform: scale(1.05);
+  transition: transform 0.3s ease;
+}
+
+/* Lazy loading изображений */
+.lazy-image {
+  opacity: 0;
+  transition: opacity 0.3s ease;
+  background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
+  background-size: 200% 100%;
+  animation: loading 1.5s infinite;
+}
+
+.lazy-image.loaded {
+  opacity: 1;
+  animation: none;
+}
+
+@keyframes loading {
+  0% { background-position: 200% 0; }
+  100% { background-position: -200% 0; }
+}
+
+/* Оптимизированные анимации */
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes slideInRight {
+  from {
+    opacity: 0;
+    transform: translateX(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+@keyframes pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.5; }
+}
+
+/* Адтивные анимации */
+.animate-fade-in {
+  animation: fadeInUp calc(var(--normal-animation) * var(--animation-duration-multiplier)) ease-out;
+}
+
+.animate-slide-in {
+  animation: slideInRight calc(var(--normal-animation) * var(--animation-duration-multiplier)) ease-out;
+}
+
+.animate-pulse {
+  animation: pulse calc(var(--slow-animation) * var(--animation-duration-multiplier)) infinite;
+}
+
+/* Оптимизированные переходы */
+.transition-all {
+  transition: all calc(var(--normal-animation) * var(--animation-duration-multiplier)) ease;
+}
+
+.transition-transform {
+  transition: transform calc(var(--normal-animation) * var(--animation-duration-multiplier)) ease;
+}
+
+.transition-opacity {
+  transition: opacity calc(var(--fast-animation) * var(--animation-duration-multiplier)) ease;
+}
+
+/* Адтивные медиа запросы */
+@media (max-width: 768px) {
+  :root {
+    --container-padding: 1rem;
+    --card-padding: 0.75rem;
+    --border-radius: 0.5rem;
+    --animation-duration-multiplier: 0.8;
+  }
+  
+  .mobile-optimized {
+    padding: var(--container-padding);
+  }
+  
+  .mobile-optimized .card {
+    padding: var(--card-padding);
+    border-radius: var(--border-radius);
+  }
+  
+  /* Уменьшаем анимации на мобильных */
+  .mobile-optimized * {
+    animation-duration: calc(var(--normal-animation) * 0.8) !important;
+    transition-duration: calc(var(--normal-animation) * 0.8) !important;
+  }
+}
+
+@media (max-width: 480px) {
+  :root {
+    --animation-duration-multiplier: 0.6;
+    --max-complexity: simple;
+  }
+  
+  .small-mobile-optimized {
+    padding: 0.75rem;
+  }
+  
+  .small-mobile-optimized .card {
+    padding: 0.5rem;
+    margin: 0.25rem 0;
+  }
+  
+  /* Минимальные анимации на маленьких экранах */
+  .small-mobile-optimized * {
+    animation-duration: calc(var(--normal-animation) * 0.6) !important;
+    transition-duration: calc(var(--normal-animation) * 0.6) !important;
+  }
+}
+
+/* Оптимизации для планшетов */
+@media (min-width: 769px) and (max-width: 1024px) {
+  :root {
+    --container-padding: 1.5rem;
+    --card-padding: 1.25rem;
+  }
+  
+  .tablet-optimized {
+    max-width: 100%;
+    padding: var(--container-padding);
+  }
+}
+
+/* Оптимизации для больших экранов */
+@media (min-width: 1025px) {
+  :root {
+    --container-padding: 2rem;
+    --card-padding: 1.5rem;
+    --animation-duration-multiplier: 1.2;
+  }
+  
+  .desktop-optimized {
+    max-width: 1400px;
+    margin: 0 auto;
+    padding: var(--container-padding);
+  }
+  
+  /* Увеличиваем сложность анимаций на больших экранах */
+  .desktop-optimized .enhanced-animation {
+    animation-duration: calc(var(--normal-animation) * 1.2);
+  }
+}
+
+/* Оптимизации для высокого DPI */
+@media (-webkit-min-device-pixel-ratio: 2), (min-resolution: 192dpi) {
+  .high-dpi-optimized {
+    image-rendering: -webkit-optimize-contrast;
+  }
+}
+
+/* Оптимизации для темной темы */
+@media (prefers-color-scheme: dark) {
+  .dark-optimized {
+    background: #0f0f0f;
+    color: #ffffff;
+  }
+  
+  .dark-optimized .card {
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+  }
+}
+
+/* Оптимизации для светлой темы */
+@media (prefers-color-scheme: light) {
+  .light-optimized {
+    background: #ffffff;
+    color: #000000;
+  }
+  
+  .light-optimized .card {
+    background: rgba(0, 0, 0, 0.05);
+    border: 1px solid rgba(0, 0, 0, 0.1);
+  }
+}
+
+/* Оптимизации для печати */
+@media print {
+  .print-optimized {
+    background: white !important;
+    color: black !important;
+  }
+  
+  .print-optimized * {
+    animation: none !important;
+    transition: none !important;
+    box-shadow: none !important;
+    text-shadow: none !important;
+  }
+  
+  .print-optimized .no-print {
+    display: none !important;
+  }
+}
+
+/* Оптимизации для доступности */
+@media (prefers-contrast: high) {
+  .high-contrast {
+    filter: contrast(1.5);
+  }
+  
+  .high-contrast .card {
+    border: 2px solid currentColor;
+  }
+}
+
+/* Оптимизации для сенсорных экранов */
+@media (pointer: coarse) {
+  .touch-optimized {
+    --min-touch-target: 44px;
+  }
+  
+  .touch-optimized button,
+  .touch-optimized .btn,
+  .touch-optimized a {
+    min-height: var(--min-touch-target);
+    min-width: var(--min-touch-target);
+    padding: 12px 16px;
+  }
+  
+  .touch-optimized .interactive-element {
+    cursor: pointer;
+    -webkit-tap-highlight-color: rgba(0, 0, 0, 0.1);
+  }
+}
+
+/* Оптимизации для мыши */
+@media (pointer: fine) {
+  .mouse-optimized .interactive-element:hover {
+    transform: scale(1.05);
+    transition: transform 0.2s ease;
+  }
+}
+
+/* Оптимизации для ландшафтной ориентации */
+@media (orientation: landscape) and (max-height: 600px) {
+  .landscape-optimized {
+    padding: 0.5rem;
+  }
+  
+  .landscape-optimized .card {
+    padding: 0.75rem;
+    margin: 0.25rem 0;
+  }
+}
+
+/* Оптимизации для портретной ориентации */
+@media (orientation: portrait) {
+  .portrait-optimized {
+    padding: 1rem;
+  }
+  
+  .portrait-optimized .sidebar {
+    width: 100%;
+    max-width: 300px;
+  }
+}
+
+/* Финальные оптимизации */
+.performance-optimized {
+  contain: layout style paint;
+  will-change: auto;
+}
+
+.performance-optimized * {
+  will-change: auto;
+}
+
+.performance-optimized:hover {
+  will-change: transform, opacity;
+}
+
+/* Критически важные стили (всегда загружаются) */
+.critical-css {
+  display: block !important;
+}
+
+/* Некритичные стили (можно отложить) */
+.non-critical-css {
+  display: none;
+}
+
+.non-critical-css.loaded {
+  display: block;
+}

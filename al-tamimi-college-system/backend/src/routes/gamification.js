@@ -2,6 +2,7 @@ import { Router } from "express";
 import { ensureGamificationTables, addXP, grantAchievement, getUserGamification } from "../services/gamification.js";
 import { requireAuth } from "../middleware/auth.js";
 import { demo, demoMode } from "../demoStore.js";
+import { query } from "../db.js";
 
 export const gamificationRouter = Router();
 

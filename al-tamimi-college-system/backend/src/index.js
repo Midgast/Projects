@@ -11,14 +11,25 @@ import { attendanceRouter } from "./routes/attendance.js";
 import { newsRouter } from "./routes/news.js";
 import { awardsRouter } from "./routes/awards.js";
 import { analyticsRouter } from "./routes/analytics.js";
+import { analyticsExtendedRouter } from "./routes/analytics-extended.js";
+import { analyticsAdvancedRouter } from "./routes/analytics-advanced.js";
+import { analyticsAlertsRouter } from "./routes/analytics-alerts.js";
+import { analyticsReportsRouter } from "./routes/analytics-reports.js";
 import { exportRouter } from "./routes/export.js";
 import { metaRouter } from "./routes/meta.js";
 import { assistantRouter } from "./routes/assistant.js";
 import { pollsRouter } from "./routes/polls.js";
 import { gamificationRouter } from "./routes/gamification.js";
 import { parentsRouter } from "./routes/parents.js";
+import { socialRouter } from "./routes/social.js";
 import { initSocket } from "./socket.js";
-import { pool } from "./db.js";
+
+// Импорты оптимизации
+import { performanceMiddleware, initializePerformanceOptimizer } from "./lib/performanceOptimizer.js";
+import { databaseOptimizationMiddleware, initializeDatabaseOptimizer } from "./lib/databaseOptimizer.js";
+import { memoryOptimizationMiddleware, initializeMemoryOptimizer } from "./lib/memoryOptimizer.js";
+import { metricsMiddleware } from "./lib/analyticsMetrics.js";
+import { cacheMiddleware } from "./lib/analyticsCache.js";
 
 const app = express();
 
@@ -29,8 +40,14 @@ app.use(
     credentials: true,
   })
 );
-app.use(express.json({ limit: "1mb" }));
+app.use(express.json({ limit: "10mb" })); // Увеличили лимит для больших данных
 app.use(morgan("dev"));
+
+// Оптимизационные middleware (порядок важен!)
+app.use(metricsMiddleware()); // Сбор метрик
+app.use(performanceMiddleware()); // Оптимизация производительности
+app.use(memoryOptimizationMiddleware()); // Оптимизация памяти
+app.use(databaseOptimizationMiddleware()); // Оптимизация БД
 
 app.get("/health", (req, res) => res.json({ ok: true }));
 
@@ -41,43 +58,83 @@ app.use("/api/attendance", attendanceRouter);
 app.use("/api/news", newsRouter);
 app.use("/api/awards", awardsRouter);
 app.use("/api/analytics", analyticsRouter);
+app.use("/api/analytics-extended", analyticsExtendedRouter);
+app.use("/api/analytics-advanced", analyticsAdvancedRouter);
+app.use("/api/analytics-alerts", analyticsAlertsRouter);
+app.use("/api/analytics-reports", analyticsReportsRouter);
 app.use("/api/export", exportRouter);
 app.use("/api/meta", metaRouter);
 app.use("/api/assistant", assistantRouter);
 app.use("/api/polls", pollsRouter);
 app.use("/api/gamification", gamificationRouter);
 app.use("/api/parents", parentsRouter);
+app.use("/api/social", socialRouter);
 
 app.use((err, req, res, next) => {
   const status = err.status || 500;
+  const message = err.message || "Internal Server Error";
+  
+  // Логируем ошибки с метриками
+  console.error('Server error:', err);
+  analyticsMetrics.incrementCounter('server_errors');
+  
   res.status(status).json({
-    error: {
-      message: err.message || "Server error",
-    },
+    error: message,
+    timestamp: new Date().toISOString(),
+    requestId: req.id || 'unknown'
   });
 });
 
-async function main() {
-  if (process.env.DEMO_MODE !== "true") {
-    try {
-      const timeoutMs = 1200;
-      await Promise.race([
-        pool.query("select 1"),
-        new Promise((_, rej) => setTimeout(() => rej(new Error("DB timeout")), timeoutMs)),
-      ]);
-    } catch {
-      process.env.DEMO_MODE = "true";
-      console.log("DB is unavailable -> DEMO_MODE enabled");
-    }
+// Инициализация оптимизаторов
+async function initializeOptimizers() {
+  try {
+    console.log('🚀 Initializing performance optimizers...');
+    
+    await initializePerformanceOptimizer();
+    console.log('✅ Performance optimizer initialized');
+    
+    await initializeDatabaseOptimizer();
+    console.log('✅ Database optimizer initialized');
+    
+    await initializeMemoryOptimizer();
+    console.log('✅ Memory optimizer initialized');
+    
+    console.log('🎉 All optimizers initialized successfully!');
+  } catch (error) {
+    console.error('❌ Failed to initialize optimizers:', error);
   }
-
-  const port = Number(process.env.PORT || 4000);
-  const server = app.listen(port, () => {
-    console.log(`API listening on http://localhost:${port}`);
-  });
-
-  // Init Socket.IO
-  initSocket(server);
 }
 
-main();
+// Запуск сервера с оптимизацией
+const PORT = process.env.PORT || 4000;
+
+// Инициализируем оптимизаторы перед запуском сервера
+initializeOptimizers().then(() => {
+  const server = app.listen(PORT, () => {
+    console.log(`🚀 Server running on http://localhost:${PORT}`);
+    console.log(`📊 Performance monitoring enabled`);
+    console.log(`🧠 Memory optimization enabled`);
+    console.log(`💾 Database optimization enabled`);
+    console.log(`⚡ Cache optimization enabled`);
+  });
+
+  // Graceful shutdown
+  process.on('SIGTERM', () => {
+    console.log('SIGTERM received, shutting down gracefully');
+    server.close(() => {
+      console.log('Server closed');
+      process.exit(0);
+    });
+  });
+
+  process.on('SIGINT', () => {
+    console.log('SIGINT received, shutting down gracefully');
+    server.close(() => {
+      console.log('Server closed');
+      process.exit(0);
+    });
+  });
+}).catch(error => {
+  console.error('Failed to start server:', error);
+  process.exit(1);
+});

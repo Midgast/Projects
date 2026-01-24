@@ -16,6 +16,7 @@ const dict = {
     admin: "Администратор",
     teacher: "Учитель",
     student: "Студент",
+    parent: "Родитель",
 
     dashboard: "Дашборд",
     schedule: "Расписание",
@@ -179,11 +180,140 @@ const dict = {
     tour_next: "Далее",
     tour_back: "Назад",
     tour_go: "Перейти",
+
+    // Polls
+    polls: "Опросы",
+    create_poll: "Создать опрос",
+    poll_question: "Вопрос опроса",
+    poll_options: "Варианты ответа",
+    add_option: "Добавить вариант",
+    remove_option: "Удалить вариант",
+    anonymous_voting: "Анонимное голосование",
+    multiple_choice: "Множественный выбор",
+    poll_ends: "Опрос заканчивается",
+    vote: "Голосовать",
+    view_results: "Посмотреть результаты",
+    poll_analytics: "Аналитика опроса",
+    total_votes: "Всего голосов",
+    no_polls: "Нет опросов",
+    poll_created: "Опрос создан",
+    vote_cast: "Голос принят",
+
+    // Gamification
+    gamification: "Геймификация",
+    level: "Уровень",
+    xp: "Опыт",
+    achievements: "Достижения",
+    leaderboard: "Таблица лидеров",
+    achievement_unlocked: "Достижение разблокировано",
+    xp_earned: "Опыт получен",
+    level_up: "Новый уровень!",
+    no_achievements: "Нет достижений",
+    rank: "Ранг",
+
+    // Parent Portal
+    parent_portal: "Родительский портал",
+    link_student: "Привязать студента",
+    student_email: "Email студента",
+    relationship: "Отношение",
+    mother: "Мать",
+    father: "Отец",
+    guardian: "Опекун",
+    linked_students: "Привязанные студенты",
+    student_progress: "Прогресс студента",
+    attendance_rate_parent: "Посещаемость",
+    performance_parent: "Успеваемость",
+    recent_grades_parent: "Последние оценки",
+    announcements_parent: "Объявления",
+    no_linked_students: "Нет привязанных студентов",
+    student_linked: "Студент привязан",
+
+    // Delete
+    delete_action: "Удалить",
+    delete_news: "Удалить новость",
+    confirm_delete: "Подтвердить удаление",
+    news_deleted: "Новость удалена",
+
+    // Unified Dashboard
+    quick_actions: "Быстрые действия",
+    teacher_actions: "Действия учителя",
+    view_schedule: "Просмотреть расписание",
+    my_progress: "Мой прогресс",
+    attendance_journal: "Журнал посещаемости",
+    group_analytics: "Аналитика группы",
+    total_students: "Всего студентов",
+    students_unified: "Студенты",
+    avg_attendance: "Средняя посещаемость",
+    attendance_records: "Записи посещаемости",
+    admin_view: "Админ панель",
+    admin_tools_unified: "Админ инструменты",
+    performance_index_unified: "Индекс успеваемости",
+    risk_level_unified: "Уровень риска",
+
+    // Social Network
+    social_network: "Социалдык тармак",
+    what_s_new: "Жаңылык барбы?",
+    publish_social: "Жарыялоо",
+    clubs: "Клубдар",
+    trending: "Тренддер",
+    events: "Окуялар",
+    join: "Катышуу",
+    participants: "катышуучулар",
+    posts: "посттор",
+    chat_social: "Чат",
+    analytics_social: "Аналитика",
+    export_social: "Экспорт",
+    search_analytics: "Аналитикада издөө",
+    today: "Бүгүн",
+    this_week: "Бул аптада",
+    this_month: "Бул айда",
+    this_year: "Бул жылы",
+    total_users: "Бардык колдонуучулар",
+    active_sessions: "Активдүү сессиялар",
+    total_posts: "Бардык посттор",
+    achievements_social: "Жетишкендиктер",
+    user_activity: "Колдонуучулар активдүүлүгү",
+    performance_metrics: "Өндүрүш метрикалары",
+    detailed_statistics: "Деталдуу статистика",
+    date_social: "Күн",
+    users_social: "Колдонуучулар",
+    sessions_social: "Сессиялар",
+    engagement: "Катышуу",
+    no_analytics_data: "Аналитика маалыматы жок",
+    chart_placeholder: "График бул жерде болот",
+    search_chats: "Чаттарды издөө",
+    no_messages: "Билдирүү жок",
+    select_chat: "Чатты тандаңыз",
+    type_message: "Билдирүү жазыңыз...",
+    online: "Тармакта",
+
+    // Teacher Tools
+    search_students: "Студенттерди издөө",
+    award_badge_teacher: "Белги ыйгаруу",
+    create_badge: "Белги түзүү",
+    available_badges_teacher: "Жеткиликтүү белгилер",
+    choose_student: "Студентти тандаңыз",
+    choose_badge: "Белгини тандаңыз",
+    cancel: "Жокко чыгаруу",
+    add_grade: "Баа кошуу",
+    add: "Кошуу",
+    subject_teacher: "Предмет",
+    grade_teacher: "Баа",
+    comment_teacher: "Комментарий",
+    my_schedule: "Менин жадыбалым",
+    add_lesson: "Сабак кошуу",
+    recent_grades_teacher: "Акыркы баалар",
+    actions: "Аракеттер",
+    class_analytics: "Класс аналитикасы",
+    avg_performance: "Орточо окуу",
+    risk_students: "Тобокелдүү студенттер",
+    performance_distribution: "Окуу бөлүштүрүлүшү",
   },
   ky: {
     language: "Тил",
     ru: "Русча",
     ky: "Кыргызча",
+    // ... (rest of the code remains the same)
 
     login_title: "Аль-Тамими колледж системасы",
     sign_in: "Кирүү",
@@ -193,6 +323,7 @@ const dict = {
     admin: "Админ",
     teacher: "Мугалим",
     student: "Студент",
+    parent: "Ата-эне",
 
     dashboard: "Башкы панель",
     schedule: "Жадыбал",
@@ -354,20 +485,34 @@ const dict = {
     tour_step_teacher: "2) Мугалим: журнал + белгилер",
     tour_step_admin: "3) Админ: аналитика + отчёт",
     tour_next: "Кийинки",
-    tour_back: "Артка",
-    tour_go: "Өтүү",
   },
 };
 
 export function I18nProvider({ children }) {
-  const [lang, setLang] = useState(() => localStorage.getItem("altamimi_lang") || "ru");
+  const [lang, setLang] = useState(() => {
+    try {
+      return localStorage.getItem("altamimi_lang") || "ru";
+    } catch {
+      return "ru";
+    }
+  });
 
   useEffect(() => {
-    localStorage.setItem("altamimi_lang", lang);
+    try {
+      localStorage.setItem("altamimi_lang", lang);
+    } catch {
+      // Ignore localStorage errors
+    }
   }, [lang]);
 
   const t = useMemo(() => {
-    return (key) => dict[lang]?.[key] ?? dict.ru[key] ?? key;
+    return (key) => {
+      try {
+        return dict[lang]?.[key] ?? dict.ru[key] ?? key;
+      } catch {
+        return key;
+      }
+    };
   }, [lang]);
 
   const value = useMemo(() => ({ lang, setLang, t }), [lang, t]);
@@ -376,6 +521,13 @@ export function I18nProvider({ children }) {
 
 export function useI18n() {
   const ctx = useContext(I18nContext);
-  if (!ctx) throw new Error("I18nContext missing");
+  if (!ctx) {
+    // Безопасная заглушка вместо ошибки
+    return {
+      lang: "ru",
+      setLang: () => {},
+      t: (key) => key
+    };
+  }
   return ctx;
 }

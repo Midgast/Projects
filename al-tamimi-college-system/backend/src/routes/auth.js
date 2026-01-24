@@ -25,9 +25,10 @@ authRouter.post("/login", async (req, res, next) => {
       if (!found) throw httpError(401, "Invalid credentials");
 
       const passOk =
-        (found.role === "admin" && body.password === "Admin123!") ||
-        (found.role === "teacher" && body.password === "Teacher123!") ||
-        (found.role === "student" && body.password === "Student123!");
+        (found.role === "admin" && body.password === "admin") ||
+        (found.role === "teacher" && body.password === "teacher") ||
+        (found.role === "student" && body.password === "student") ||
+        (found.role === "parent" && body.password === "parent");
       if (!passOk) throw httpError(401, "Invalid credentials");
 
       const token = jwt.sign(

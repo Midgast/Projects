@@ -2,7 +2,7 @@ import { Router } from "express";
 
 import { query } from "../db.js";
 import { requireAuth, requireRole } from "../middleware/auth.js";
-import { computeStudentStats, demo, demoMode } from "../demoStore.js";
+import { computeStudentStats, computeGroupStats, getTopPerformers, getAtRiskStudents, demo, demoMode } from "../demoStore.js";
 
 export const analyticsRouter = Router();
 
@@ -15,19 +15,17 @@ function riskLevel(score) {
 analyticsRouter.get("/leaders", requireAuth, requireRole("admin"), async (req, res, next) => {
   try {
     if (demoMode()) {
-      const stats = computeStudentStats();
+      const topPerformers = getTopPerformers(10);
       return res.json({
-        items: [
-          {
-            studentId: demo.users.student.id,
-            studentName: demo.users.student.fullName,
-            groupName: demo.groups[0].name,
-            avgGrade: stats.avgGrade,
-            attendanceRate: stats.attendanceRate,
-            performanceIndex: stats.performanceIndex,
-            risk: stats.risk,
-          },
-        ],
+        items: topPerformers.map(p => ({
+          studentId: p.studentId,
+          studentName: p.studentName,
+          groupName: demo.groups[0].name,
+          avgGrade: p.avgGrade,
+          attendanceRate: p.attendanceRate,
+          performanceIndex: p.performanceIndex,
+          risk: p.risk,
+        })),
       });
     }
 
@@ -130,17 +128,9 @@ analyticsRouter.get("/absentees", requireAuth, requireRole("admin"), async (req,
 analyticsRouter.get("/groups", requireAuth, requireRole("admin"), async (req, res, next) => {
   try {
     if (demoMode()) {
-      const stats = computeStudentStats();
+      const groupStats = computeGroupStats();
       return res.json({
-        items: [
-          {
-            groupId: demo.groups[0].id,
-            groupName: demo.groups[0].name,
-            avgGrade: stats.avgGrade,
-            attendanceRate: stats.attendanceRate,
-            performanceIndex: stats.performanceIndex,
-          },
-        ],
+        items: [groupStats],
       });
     }
 
@@ -179,19 +169,17 @@ analyticsRouter.get("/groups", requireAuth, requireRole("admin"), async (req, re
 analyticsRouter.get("/risk", requireAuth, requireRole("admin"), async (req, res, next) => {
   try {
     if (demoMode()) {
-      const stats = computeStudentStats();
+      const atRiskStudents = getAtRiskStudents();
       return res.json({
-        items: [
-          {
-            studentId: demo.users.student.id,
-            studentName: demo.users.student.fullName,
-            groupName: demo.groups[0].name,
-            avgGrade: stats.avgGrade,
-            attendanceRate: stats.attendanceRate,
-            performanceIndex: stats.performanceIndex,
-            risk: stats.risk,
-          },
-        ],
+        items: atRiskStudents.map(s => ({
+          studentId: s.studentId,
+          studentName: s.studentName,
+          groupName: demo.groups[0].name,
+          avgGrade: s.avgGrade,
+          attendanceRate: s.attendanceRate,
+          performanceIndex: s.performanceIndex,
+          risk: s.risk,
+        })),
       });
     }
 

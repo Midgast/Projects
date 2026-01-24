@@ -31,6 +31,7 @@ export function DashboardPage() {
   const { t } = useI18n();
   const navigate = useNavigate();
   const [studentStats, setStudentStats] = useState(null);
+  const [teacherStats, setTeacherStats] = useState(null);
   const [news, setNews] = useState([]);
   const [tourOpen, setTourOpen] = useState(false);
   const [tourStep, setTourStep] = useState(0);
@@ -43,8 +44,21 @@ export function DashboardPage() {
       if (user?.role === "student") {
         const data = await apiFetch("/api/attendance/my", { token });
         setStudentStats(data.stats);
+        setTeacherStats(null);
+      } else if (user?.role === "teacher") {
+        // Teacher stats
+        const students = await apiFetch("/api/meta/students", { token });
+        const attendance = await apiFetch("/api/attendance", { token });
+        setTeacherStats({
+          totalStudents: students.items?.length || 0,
+          totalAttendance: attendance.items?.length || 0,
+          avgAttendance: attendance.items?.length ? 
+            Math.round((attendance.items.filter(a => a.status === 'present').length / attendance.items.length) * 100) : 0
+        });
+        setStudentStats(null);
       } else {
         setStudentStats(null);
+        setTeacherStats(null);
       }
     })();
   }, [token, user?.role]);
@@ -83,28 +97,70 @@ export function DashboardPage() {
       </div>
 
       <div className="mt-6 grid grid-cols-1 gap-4 md:grid-cols-3">
-        <StatCard
-          title={t("attendance")}
-          value={user?.role === "student" ? `${Math.round((studentStats?.attendanceRate ?? 1) * 100)}%` : "—"}
-          sub={
-            user?.role === "student"
-              ? `${studentStats?.attended ?? 0}/${studentStats?.total ?? 0} ${t("classes")}`
-              : t("student_only")
-          }
-          icon={CheckCircle2}
-        />
-        <StatCard
-          title={t("performance")}
-          value={user?.role === "student" ? studentStats?.performanceIndex?.toFixed(1) ?? "—" : "—"}
-          sub={t("pi_label")}
-          icon={TrendingUp}
-        />
-        <StatCard
-          title={t("risk")}
-          value={user?.role === "student" ? studentStats?.risk?.level.toUpperCase() ?? "—" : "—"}
-          sub={t("risk_label")}
-          icon={AlertTriangle}
-        />
+        {user?.role === "student" ? (
+          <>
+            <StatCard
+              title={t("attendance")}
+              value={`${Math.round((studentStats?.attendanceRate ?? 1) * 100)}%`}
+              sub={`${studentStats?.attended ?? 0}/${studentStats?.total ?? 0} ${t("classes")}`}
+              icon={CheckCircle2}
+            />
+            <StatCard
+              title={t("performance")}
+              value={studentStats?.performanceIndex?.toFixed(1) ?? "—"}
+              sub={t("performance_index")}
+              icon={TrendingUp}
+            />
+            <StatCard
+              title={t("risk")}
+              value={studentStats?.risk?.level.toUpperCase() ?? "—"}
+              sub={t("risk_level")}
+              icon={AlertTriangle}
+            />
+          </>
+        ) : user?.role === "teacher" ? (
+          <>
+            <StatCard
+              title={t("total_students")}
+              value={teacherStats?.totalStudents ?? 0}
+              sub={t("students")}
+              icon={CheckCircle2}
+            />
+            <StatCard
+              title={t("avg_attendance")}
+              value={`${teacherStats?.avgAttendance ?? 0}%`}
+              sub={t("attendance_rate")}
+              icon={TrendingUp}
+            />
+            <StatCard
+              title={t("total_records")}
+              value={teacherStats?.totalAttendance ?? 0}
+              sub={t("attendance_records")}
+              icon={AlertTriangle}
+            />
+          </>
+        ) : (
+          <>
+            <StatCard
+              title={t("dashboard")}
+              value="—"
+              sub={t("admin_view")}
+              icon={CheckCircle2}
+            />
+            <StatCard
+              title={t("analytics")}
+              value="—"
+              sub={t("admin_only")}
+              icon={TrendingUp}
+            />
+            <StatCard
+              title={t("tools")}
+              value="—"
+              sub={t("admin_tools")}
+              icon={AlertTriangle}
+            />
+          </>
+        )}
       </div>
 
       <div className="mt-4 grid grid-cols-1 gap-4 md:grid-cols-3">
@@ -146,6 +202,47 @@ export function DashboardPage() {
       </div>
 
       <div className="mt-4">
+        {/* Quick Actions based on role */}
+        {user?.role === "student" && (
+          <div className="card p-4">
+            <div className="text-sm font-bold">{t("quick_actions")}</div>
+            <div className="mt-3 grid grid-cols-2 gap-2">
+              <button onClick={() => navigate("/schedule")} className="btn-ghost text-sm">
+                {t("view_schedule")}
+              </button>
+              <button onClick={() => navigate("/badges")} className="btn-ghost text-sm">
+                {t("my_badges")}
+              </button>
+              <button onClick={() => navigate("/gamification")} className="btn-ghost text-sm">
+                {t("my_progress")}
+              </button>
+              <button onClick={() => navigate("/goals")} className="btn-ghost text-sm">
+                {t("my_goals")}
+              </button>
+            </div>
+          </div>
+        )}
+
+        {user?.role === "teacher" && (
+          <div className="card p-4">
+            <div className="text-sm font-bold">{t("teacher_actions")}</div>
+            <div className="mt-3 grid grid-cols-2 gap-2">
+              <button onClick={() => navigate("/journal")} className="btn-ghost text-sm">
+                {t("attendance_journal")}
+              </button>
+              <button onClick={() => navigate("/tools")} className="btn-ghost text-sm">
+                {t("award_badges")}
+              </button>
+              <button onClick={() => navigate("/schedule")} className="btn-ghost text-sm">
+                {t("view_schedule")}
+              </button>
+              <button onClick={() => navigate("/analytics")} className="btn-ghost text-sm">
+                {t("group_analytics")}
+              </button>
+            </div>
+          </div>
+        )}
+
         <AssistantWidget />
       </div>
 

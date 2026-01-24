@@ -1,20 +1,48 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { ShieldCheck } from "lucide-react";
 
 import { useAuth } from "../app/auth/AuthContext.jsx";
 import { useI18n } from "../app/i18n/I18nContext.jsx";
+import { checkApiConnection } from "../app/api.js";
 
 export function LoginPage() {
   const { login } = useAuth();
   const navigate = useNavigate();
   const { lang, setLang, t } = useI18n();
 
-  const [email, setEmail] = useState("admin@example.com");
+  const [email, setEmail] = useState("admin@admin.com");
   const [password, setPassword] = useState("admin");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
   const [logoLoaded, setLogoLoaded] = useState(false);
+
+  // Проверяем соединение с API при загрузке страницы
+  useEffect(() => {
+    const testConnection = async () => {
+      console.log('Testing API connection...');
+      try {
+        const isConnected = await checkApiConnection();
+        console.log('API connection result:', isConnected);
+        if (!isConnected) {
+          setError("Backend not responding. Please restart backend server.");
+        } else {
+          console.log('✅ Backend is working!');
+          // Если есть старая ошибка, очищаем ее
+          if (error && error.includes("Backend not responding")) {
+            setError("");
+          }
+        }
+      } catch (err) {
+        console.error('Connection test error:', err);
+        setError("Connection error: " + err.message);
+      }
+    };
+    
+    // Добавляем задержку чтобы избежать ошибки с localStorage
+    const timer = setTimeout(testConnection, 100);
+    return () => clearTimeout(timer);
+  }, []);
 
   return (
     <div className="min-h-screen">
@@ -47,12 +75,12 @@ export function LoginPage() {
                   <option value="ky">{t("ky")}</option>
                 </select>
               </div>
-              <div className="mt-3 grid grid-cols-1 gap-2 sm:grid-cols-3">
+              <div className="mt-3 grid grid-cols-2 gap-2 sm:grid-cols-4">
                 <button
                   type="button"
                   className="btn-ghost w-full"
                   onClick={() => {
-                    setEmail("admin@example.com");
+                    setEmail("admin@admin.com");
                     setPassword("admin");
                   }}
                 >
@@ -62,7 +90,7 @@ export function LoginPage() {
                   type="button"
                   className="btn-ghost w-full"
                   onClick={() => {
-                    setEmail("teacher@example.com");
+                    setEmail("teacher@school.com");
                     setPassword("teacher");
                   }}
                 >
@@ -72,11 +100,21 @@ export function LoginPage() {
                   type="button"
                   className="btn-ghost w-full"
                   onClick={() => {
-                    setEmail("student@example.com");
+                    setEmail("student@school.com");
                     setPassword("student");
                   }}
                 >
                   {t("student")}
+                </button>
+                <button
+                  type="button"
+                  className="btn-ghost w-full"
+                  onClick={() => {
+                    setEmail("parent@school.com");
+                    setPassword("parent");
+                  }}
+                >
+                  {t("parent")}
                 </button>
               </div>
             </div>
@@ -119,6 +157,15 @@ export function LoginPage() {
               {error && (
                 <div className="rounded-xl border border-rose-400/20 bg-rose-500/10 p-3 text-sm text-rose-100">
                   {error}
+                  <button 
+                    className="ml-2 underline text-xs"
+                    onClick={() => {
+                      setError("");
+                      window.location.reload();
+                    }}
+                  >
+                    Обновить страницу
+                  </button>
                 </div>
               )}
 
