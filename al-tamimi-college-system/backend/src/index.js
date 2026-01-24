@@ -24,11 +24,8 @@ import { parentsRouter } from "./routes/parents.js";
 import { socialRouter } from "./routes/social.js";
 import { initSocket } from "./socket.js";
 
-// Импорты оптимизации
-// import { performanceMiddleware, initializePerformanceOptimizer } from "./lib/performanceOptimizer.js";
-// import { databaseOptimizationMiddleware, initializeDatabaseOptimizer } from "./lib/databaseOptimizer.js";
-// import { memoryOptimizationMiddleware, initializeMemoryOptimizer } from "./lib/memoryOptimizer.js";
-import { metricsMiddleware } from "./lib/analyticsMetrics.js";
+// Импорты оптимизации - отключены для стабильности
+// import { metricsMiddleware } from "./lib/analyticsMetrics.js";
 
 const app = express();
 
@@ -42,12 +39,8 @@ app.use(
 app.use(express.json({ limit: "10mb" })); // Увеличили лимит для больших данных
 app.use(morgan("dev"));
 
-// Оптимизационные middleware (порядок важен!)
-app.use(metricsMiddleware()); // Сбор метрик
-// app.use(performanceMiddleware()); // Оптимизация производительности
-// app.use(memoryOptimizationMiddleware()); // Оптимизация памяти
-// app.use(databaseOptimizationMiddleware()); // Оптимизация базы данных
-// app.use(cacheMiddleware()); // Кэширование
+// Оптимизационные middleware отключены
+// app.use(metricsMiddleware()); // Сбор метрик
 
 app.get("/health", (req, res) => res.json({ ok: true }));
 
@@ -74,9 +67,9 @@ app.use((err, req, res, next) => {
   const status = err.status || 500;
   const message = err.message || "Internal Server Error";
   
-  // Логируем ошибки с метриками
+  // Логируем ошибки без метрик
   console.error('Server error:', err);
-  analyticsMetrics.incrementCounter('server_errors');
+  // analyticsMetrics.incrementCounter('server_errors');
   
   res.status(status).json({
     error: message,
@@ -85,7 +78,7 @@ app.use((err, req, res, next) => {
   });
 });
 
-// Инициализация оптимизаторов
+// Инициализация оптимизаторов отключена
 async function initializeOptimizers() {
   try {
     // console.log('🚀 Initializing performance optimizers...');
@@ -105,8 +98,8 @@ async function initializeOptimizers() {
   }
 }
 
-// Запуск сервера с оптимизацией
-const PORT = process.env.PORT || 4002;
+// Запуск сервера без оптимизации
+const PORT = process.env.PORT || 4003;
 
 // Инициализируем оптимизаторы перед запуском сервера
 initializeOptimizers().then(() => {
