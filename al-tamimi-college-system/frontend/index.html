@@ -1,22 +1,328 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>AL TAMIMI College System</title>
-    <link rel="manifest" href="/manifest.json" />
-    <meta name="theme-color" content="#3b82f6" />
-    <meta name="apple-mobile-web-app-capable" content="yes" />
-    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
-  </head>
-  <body>
+    <script src="https://unpkg.com/react@18/umd/react.development.js"></script>
+    <script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: system-ui, -apple-system, sans-serif;
+        }
+        
+        .login-container {
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        }
+        
+        .login-card {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            padding: 3rem;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            max-width: 400px;
+            width: 100%;
+        }
+        
+        .login-title {
+            color: white;
+            text-align: center;
+            margin-bottom: 2rem;
+            font-size: 2rem;
+            font-weight: bold;
+        }
+        
+        .form-group {
+            margin-bottom: 1rem;
+        }
+        
+        .form-input {
+            width: 100%;
+            padding: 1rem;
+            border-radius: 10px;
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            background: rgba(255, 255, 255, 0.1);
+            color: white;
+            font-size: 1rem;
+            margin-bottom: 1rem;
+        }
+        
+        .form-input::placeholder {
+            color: rgba(255, 255, 255, 0.7);
+        }
+        
+        .error-message {
+            color: #ff6b6b;
+            margin-bottom: 1rem;
+            text-align: center;
+            font-size: 0.9rem;
+        }
+        
+        .login-button {
+            width: 100%;
+            padding: 1rem;
+            border-radius: 10px;
+            border: none;
+            background: #4CAF50;
+            color: white;
+            font-size: 1rem;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        
+        .login-button:disabled {
+            background: #666;
+            cursor: not-allowed;
+        }
+        
+        .demo-info {
+            color: rgba(255, 255, 255, 0.8);
+            text-align: center;
+            margin-top: 1rem;
+            font-size: 0.9rem;
+        }
+        
+        .dashboard-container {
+            min-height: 100vh;
+            background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
+            color: white;
+        }
+        
+        .dashboard-header {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            padding: 1rem 2rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .dashboard-title {
+            font-size: 1.5rem;
+            margin: 0;
+        }
+        
+        .user-section {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+        
+        .logout-button {
+            padding: 0.5rem 1rem;
+            border-radius: 8px;
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            background: rgba(244, 67, 54, 0.8);
+            color: white;
+            cursor: pointer;
+        }
+        
+        .dashboard-main {
+            padding: 2rem;
+        }
+        
+        .welcome-title {
+            font-size: 2rem;
+            margin-bottom: 2rem;
+        }
+        
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 2rem;
+        }
+        
+        .stat-card {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            border-radius: 15px;
+            padding: 2rem;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+        
+        .stat-title {
+            font-size: 1.3rem;
+            margin-bottom: 1rem;
+        }
+        
+        .stat-value {
+            font-size: 2rem;
+            font-weight: bold;
+            margin: 0;
+        }
+    </style>
+</head>
+<body>
     <div id="root"></div>
-    <script type="module" src="/src/main.jsx"></script>
-    <script>
-      // Service worker disabled for stability
-      // if ("serviceWorker" in navigator) {
-      //   navigator.serviceWorker.register("/sw.js");
-      // }
+
+    <script type="text/babel">
+        const { useState, useEffect } = React;
+        const { BrowserRouter, Routes, Route, Navigate } = ReactRouterDOM;
+
+        function SimpleLogin() {
+            const [email, setEmail] = useState("admin@altamimi.local");
+            const [password, setPassword] = useState("admin");
+            const [error, setError] = useState("");
+            const [loading, setLoading] = useState(false);
+
+            const handleLogin = async (e) => {
+                e.preventDefault();
+                setLoading(true);
+                setError("");
+
+                try {
+                    const response = await fetch("http://localhost:4005/api/auth/login", {
+                        method: "POST",
+                        headers: {
+                            "Content-Type": "application/json",
+                        },
+                        body: JSON.stringify({ email, password }),
+                    });
+
+                    const data = await response.json();
+
+                    if (response.ok) {
+                        localStorage.setItem("token", data.token);
+                        localStorage.setItem("user", JSON.stringify(data.user));
+                        window.location.href = "/";
+                    } else {
+                        setError(data.error || "Login failed");
+                    }
+                } catch (err) {
+                    setError("Network error. Please try again.");
+                } finally {
+                    setLoading(false);
+                }
+            };
+
+            return (
+                <div className="login-container">
+                    <div className="login-card">
+                        <h1 className="login-title">AL TAMIMI College</h1>
+                        <form onSubmit={handleLogin}>
+                            <div className="form-group">
+                                <input
+                                    type="email"
+                                    className="form-input"
+                                    placeholder="Email"
+                                    value={email}
+                                    onChange={(e) => setEmail(e.target.value)}
+                                    required
+                                />
+                            </div>
+                            <div className="form-group">
+                                <input
+                                    type="password"
+                                    className="form-input"
+                                    placeholder="Password"
+                                    value={password}
+                                    onChange={(e) => setPassword(e.target.value)}
+                                    required
+                                />
+                            </div>
+                            {error && (
+                                <div className="error-message">
+                                    {error}
+                                </div>
+                            )}
+                            <button
+                                type="submit"
+                                className="login-button"
+                                disabled={loading}
+                            >
+                                {loading ? "Signing in..." : "Sign In"}
+                            </button>
+                        </form>
+                        <div className="demo-info">
+                            Demo: admin@altamimi.local / admin
+                        </div>
+                    </div>
+                </div>
+            );
+        }
+
+        function SimpleDashboard() {
+            const [user, setUser] = useState(null);
+
+            useEffect(() => {
+                const userData = localStorage.getItem("user");
+                if (userData) {
+                    setUser(JSON.parse(userData));
+                }
+            }, []);
+
+            const handleLogout = () => {
+                localStorage.removeItem("token");
+                localStorage.removeItem("user");
+                window.location.href = "/login";
+            };
+
+            if (!user) {
+                return <Navigate to="/login" replace />;
+            }
+
+            return (
+                <div className="dashboard-container">
+                    <header className="dashboard-header">
+                        <h1 className="dashboard-title">AL TAMIMI Dashboard</h1>
+                        <div className="user-section">
+                            <span>Welcome, {user.fullName}</span>
+                            <button className="logout-button" onClick={handleLogout}>
+                                Logout
+                            </button>
+                        </div>
+                    </header>
+
+                    <main className="dashboard-main">
+                        <h2 className="welcome-title">Welcome to Dashboard!</h2>
+
+                        <div className="stats-grid">
+                            <div className="stat-card">
+                                <h3 className="stat-title">Total Students</h3>
+                                <p className="stat-value">3</p>
+                            </div>
+
+                            <div className="stat-card">
+                                <h3 className="stat-title">Performance</h3>
+                                <p className="stat-value">85%</p>
+                            </div>
+                        </div>
+                    </main>
+                </div>
+            );
+        }
+
+        function App() {
+            const getPath = () => window.location.pathname;
+            
+            if (getPath() === "/login") {
+                return <SimpleLogin />;
+            }
+            
+            const token = localStorage.getItem("token");
+            if (!token) {
+                window.location.href = "/login";
+                return null;
+            }
+            
+            return <SimpleDashboard />;
+        }
+
+        ReactDOM.createRoot(document.getElementById("root")).render(<App />);
     </script>
-  </body>
+</body>
 </html>

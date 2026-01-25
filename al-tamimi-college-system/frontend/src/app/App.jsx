@@ -1,4 +1,4 @@
-,{ useState, useEfect } fRousNaviga// Sle Lgin Componen
+,{ useState, useEfect } fRousNavigae  omoe
 functionSimpleLogin() 
  con[email,setEail]= useState(admin@altamimilocl");
   cons [password, setPassword] = seSate("admin");
@@ -24,190 +24,148 @@ functionSimpleLogin()
       } else 
        stError(ata.error || "Login faid");
       }
-    } ctch (rr) {
-    setErro("Netwrkerror Ple try ain)    } fnally
+    } ctch (rr){
+     setErr("Networkerror Ple try ain)    } fnally
      setLadig(fs);
     }
  ;
 
- retun (
-    <div style={{
-      inHeight:"100vh,
-      disly: "flx",
+ un (
+    <div sy={{
+      inHigh: "100h"
+   disly: "flx",
       inItm: "center,      justfyCntent: "cente",
      background:"linar-grdient(135de, #667ea 0%, #764ba2 100%)",
-    ntFaily:system-ui, -apl-sytm, ns-srif
-    }}>      <dv style={{
-        backgrund: "rgba(255, 255, 255, 0.1)",
-        backdopFiler: "blur(10px)",
-      borderRiu: "20px",
-        pddin: "3rm",
+    ntFaily:system-ui, -apl-sytm, ns-srif    }>      <divstyl={{
+        bkground: "gb255, 255, 255, 0.1)"  bacdropFiltr"bu(10px)" brdeRadius: "20px",
+      pdin: "3rm",
       boxShadw:0 20px 60x rgb(0, 0, 0, 0.3)",
         bordr: "1px oli rb(255, 255, 255, 02)",
         maxWidth: "400p,        wdth: "100%"
-      }}>
-        <h1 style={{
-          col: "whie",
-        textlg: "ceer",
-          mrinBottom: "2rm",
-        ontSize: "2e",
-         fontWeight: bold"
+      }>      <h1styl={{
+          olo: "whit",
+          xtAign: "centr",
+          argiBotom: "2rem"  fontSiz "2rem",
+         fonWegh: "bold"
         }}>
-          AL TAMIMI Colle
-        <h1>
+          AL TAMIMI Coleg       </h1>
 
-        <for oSubmit={hndeLogn}>
-          <div tyle={{ mrinBottom: "1rm }}>            <nput
-              type="eail"
-              lacehlde="Email"
-            vale={mi}
-              onChne={()=>setEail(etr.val)}
-              sye={{
-                width: "100%",
-                pddin: "1rem",
-                bordrRadiu: "10p,                border: "1x slid gba(255,255,255, 0.3)",
-                bkgund: "rgba(255, 255, 255, 0.1)",
-                cor: "white",
-                fontSize: "1rem",
-                mrinBottom: "1rm"
-             }
-              required
-            />
-          </div>
-
-          <div style={{maginBottm: "1re" }}>
+<fm onSubmi={handleLogin}>
+        <dv syle={{ mrinBottom:"1e"}>
             <input
-             type=sword"
-              pleold="Password"
-              value={passwrd}
-              nChange={(e) => etssword(e.tartvalue)}
-              tyle={{
-                width: "100%,                paddng: "1re",
-                borderRadius: "10px",
-                border: "1x slid gba(255, 255, 255, 0.3)",
-                background: "rgba(255, 255, 255, 0.1)",
-                color: "whie",
-                fontSize: "1rem"
-             }}
-              required
+              type=mail              plholdr="mai"
+              valu={mail}
+              oChange={(e) => seEmaile.tagt.value)}
+              stle={{
+                width"100%"        pddng: "1rem"            bordrRdius: "10px",
+                bodr: "1px solid rgb255 255, 255, 0.3)",                bacground "rgb(255255 255, 0.1)",
+                clo"white"
+                fontSize"1rm"
+                mrinBottom"1rm"
+            }}
+              rqird
             />
           </div>
 
-          error&& (
-            <iv style={{
-              color: "#ff6b6b",
-              argBttm: "1rem",
-              textAin: "cnter",
-            ntSize:09rem"
+          <div sye={{mrinBottom: "1rm }}>            <inut
+              type="passwd"
+            pleholde="Passwrd"
+              vaue={passwrd}
+              onChn={( => stPssword(etagt.vlue)}
+              syl={{
+                widh: "100%",
+                adding: "1rem"
+                bordrRdiu: "10px",
+                ber1x solid rgb(255, 255, 255, 0.3)"
+                bkgound "rgba(255,25525501)"
+                color"white,                fontSze: "1re"
+                 
+        }             eqird
+            />
+          </div>
+          {  (
+            <div sy={{
+            color "#ff6b6b"
+             argBttm:"1rem
+              txtAlign: "ene",
+              fonSiz: "0.9r"
             }}>
-              {error}
-            <div>
+              {rror}
+            </div>
           )}
 
-          <button
-            tye="submit"
-            disabled={lodin}
-            styl={{
-              width: "100%",
-              pading: "1re",
-              borderRadus: "10px",
-              border: "ne",
-              backgrund: odin ? #666" : "#4CAF50",              clo: "whie",
-            fontSze: "1rem",
+          <
+           typ="bit"
+            disabled={loading}
+            style={{
+              wdth: "100%"
+              adding"1rem"
+              borderRadius"10px"
+              bordr"ne",
+              backgrund: odin ? "#666" : "#4CAF50,              clo: "whie",
+              fontSze: "1rem",
               ontWeght: "bold",
-              ursor: loding ? "no-allowed" : "potr",
-            tansitin:all 03s es"
-            }}
+              ursor: loding ? "no-allowed" : "pot",
+              transitin:all 03s es"
+            }
           >
-            {lodng ? "Sgn in.." : "Sign In}
-          </button>        </fm>
+            {lodng ? "Sgn in..:"Sign In"}          </button>        </fo>
 
-        <div syle={{
-        colo: "rgba(255, 255, 255, 0.8)",
+        <style={         clr"rgba(255,255,255, 0.8)",
           txtAlig: "cener",
           mrinTop: "1rm",
-        ntSize:09rem"
+        ntSize:09rem
         }}>
           Demo: admin@altamimilocal / admin
         </div>
       </div>
     </div>
-  );
+  ;
 }
 
-/ Siml Dahbod ComponSimplDashboar) 
+ionSimplDashboar) 
  onst [use, stUser] = useState(ull);
 
- useEffect(( =>  st uerDaa=localSrage.getItem("usr");
-  if(serData) {
-      setUser(JSON.par(serDaa));
+ useEffect((=>   userData= localSrag.getItem("user");
+ if (rData) {
+      setUser(JSON.parse(serDaa));
     }
   }, []);
 
   const andleLogout =  => {  localStoag.emoveIem("t");
-  loaStorage.removeItem("user");
-    winow.location.hf = "/logi";
-};
+  loaStoag.removeItem("user");
+  window.loaionhf = "/ogin";
+  };
 
-  if (!user) {
-    return     er
-   <div style={    minHigh:"100vh",  backgrnd: "linear-gradien(135dg, #1e3c72 0%, #2a5298 100%)",fnFamily: "systm-ui,-pple-sysem, sans-serif,
-      cor: "whte
-   }}>
-      <hadr syle{
-        backroud: "rba(255,255,255, 0.1)",  backdrpFilr: "blur(10px)",dding: 1rem 2rem, display:"fx",
-        justifyContt: "space-beween",alignIms: "enr"  }}>
-h1 style={{ fontize: "1.5rm", margin: 0 }}ALTAMIMIDashbard</h1>
-div syl={{disly: flex,aignIts: "cer", gap: "1rem" }}>
-          spn>Welcome, {ue.fullNm<span      <button
-onClick={handleLogt}
-            syl={{
-             dding: "0.5rem 1rem,
-              borerRdiu: "8px",
-              er: 1pxsoid rgb(255, 255, 255, 0.3)",
-              ckgoun: "rba(244, 67, 54, 0.8)",
-              color: "whit",
-             cursor: "pointer"
-            }
-         Logout
-      /bon>
-        <div>
-      </ar>
+  if (!usr) {
+    rtur < = />
+   (
+    <div sy={minHigh:"100vh",  backgrnd: "linear-gradien(135deg, #13c72 0%, #2a5298 100%)",fntFamily: "sysm-ui,-pple-sysem, sans-serif,
+      cor: "whte }}>  <stl={{  backroud: "rba(255, 255,255,0.1)",  backdrpFilr: "blur(10px)",dding: 1rem 2rem, display:"fx",
+        justifyContt: "space-beween",alignIms: "enr"  }}><h1styl={{ fonSize: "15m", argi: 0 }}>   ALTAMIMIDashboard</h1>     <divstyle={{display:"flex" alignItems:"center,gap:"1rem }}>    <span>Wlom, {usr.fulNa}</spa> <bt  onClick={hndLogou       sy={    padding"0.5r 1rm"  brderRadus8px,       border:"1pxolid gba(255, 255, 255, 0.3"            bkground: "gb24467,54,0.8)",
+     cor: "whie"   crsorpinte
+           }          >            Logou
+          </buo>
+       </div>
+      </hader>
 
-     <ai sy={{ pddin: "2rm"}<h2style={{fnSiz:"2rem", mrginBotm: "2em}}>
-          Wco  Dshbord!
-      <h2
+     <a sy={{pddin: "2rm"}}><h2styl={{ fonSize: "2m", mrginBotom: "2r"}}> W o Dashboard!
+        </h2>
+
+        <dv sy={{disply: "gid,
+         gridTmpatClumns: rep(uto-fi, imax300px1fr))", gp: "2rem"}}>
+<div sty={{bkgound: "rgb255, 255, 2550.1)",  bacdropFiltr"blur(0px)"orrRiu:"15px",   padding:"2rem",  border:"1pxsolidgb255255, 255, 0.2)"}}><h3 syle={{foSze:"1.3r", argBotom: "1rm"}>   T</h3><pstyle={{fnSiz:"2rem, fonWig: "bd,in: 0 }}>
+         </p>
+</div>
 <divstyle={{
-  disly: grid,
-         gridTmpatColu: "repet(auto-fit, minmax(300px, 1fr))",
-          ap: "2rm"
-      }}<divstyle={{
-       backgrnd: "rgba(255, 255, 255, 0.1)",
-            backdropFilr:"blur(10x),
-            orrRadiu: 15px",
-           pdin: "2rm",
-            border: "1px olid rba(255,255,255, 0.2)"}}>
-      h3syle{{ foSze:"1.3r", argBotom: "1rm"}T
-          <h3<pstyle={{fnSiz:"2rem, fonWig: "bd,in: 0 }}>
-              3
-           <p
-         <div
-       <divstyle={{
-backgrnd: "rgba(255, 255, 255, 0.1)",
-            backdropFilr:"blur(10x),
-            borderRu: "15px,
-           padg: "2rem",
-            brder: "1px sid rgb(255, 255,255,0.2)"      }}>
-h3 style={{ fnSize: "1.3rm",mrnBotm: 1r" }}>
-              Prforc
-          <h3<pstyle={{fnSiz:2m", fotWeigh: "bold,gi: 0}            85%
-p      </div>
-div</main>
-div>
-  );
+bkgoud: "rgba255255, 255, 0.1)",bacdropFiltr"bur(10px)"brdrRdus: 15px,
+            pddig: 2"bordr"1px soid rgba(255 255, 255, 0.2)"}}>
+        <h3 style={{ fnSiz:1.3m,giBottom:1rem}}>
+   Prformn
+            </h3>
+            <p sy={{ foSize: "2rm"foWigh"bod", mar: 0 }}>        85%      </p>    </div> </iv></main></div>
+);
 }
 
-export function App() {
-  retun (
-    <Routes>
-      <Rute pah="/login" elemn={<SimplLogin />} / <Routepath="/"element={<SimpleDashboard/> />      <Routepath="/*"element={<Navigateto="/"replace/>}
+xporfunion App() {
+  urn    <Routes>      <ou ph="/login" ={<SimplLogin />}/><Routep="/" eement={<SimpeDashboard />} /><Routepath="/*"={<Nvigo="/" eplace/> /></Routes>}
