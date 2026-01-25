@@ -1,4 +1,4 @@
-const API_BASE = import.meta.env.VITE_API_BASE || "http://localhost:4003";
+const API_BASE = import.meta.env.VITE_API_BASE || "http://localhost:4004";
 
 export function apiUrl(path) {
   if (path.startsWith("http")) return path;
