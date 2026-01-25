@@ -1,6 +1,11 @@
 # college_project/core/views.py
+"""
+Views for the college management system.
+Includes dashboards, pages, and API endpoints.
+"""
 from __future__ import annotations
 
+import logging
 from dataclasses import dataclass
 from datetime import datetime, timedelta
 from types import SimpleNamespace
@@ -8,10 +13,12 @@ from typing import Optional, Iterable
 
 from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.decorators import login_required
+from django.core.cache import cache
 from django.db.models import Avg, Q
 from django.http import JsonResponse, HttpResponseForbidden
 from django.shortcuts import get_object_or_404, redirect, render
 from django.utils import timezone
+from django.views.decorators.http import require_POST
 
 from .models import (
     Director,
@@ -27,27 +34,32 @@ from .models import (
     Teacher,
 )
 
+logger = logging.getLogger(__name__)
+
 
 # =========================
 # Helpers: roles & time
 # =========================
 
 def _profiles(user):
-    """Return (student, teacher, director). Any can be None."""
+    """
+    Return (student, teacher, director) profiles for a user.
+    Any can be None if the user doesn't have that role.
+    """
     student = teacher = director = None
     try:
         student = user.student
-    except Exception:
+    except (AttributeError, Student.DoesNotExist):
         student = None
 
     try:
         teacher = user.teacher
-    except Exception:
+    except (AttributeError, Teacher.DoesNotExist):
         teacher = None
 
     try:
         director = user.director
-    except Exception:
+    except (AttributeError, Director.DoesNotExist):
         director = None
 
     return student, teacher, director
@@ -117,6 +129,7 @@ def guest_landing(request):
 
 
 def login_view(request):
+    """User login view."""
     if request.user.is_authenticated:
         return redirect("/dashboard/")
 
@@ -124,17 +137,31 @@ def login_view(request):
     if request.method == "POST":
         username = request.POST.get("username", "").strip()
         password = request.POST.get("password", "").strip()
-        user = authenticate(request, username=username, password=password)
-        if user is not None:
-            login(request, user)
-            return redirect(request.GET.get("next") or "/dashboard/")
-        error = "Неверный логин или пароль."
+        
+        if not username or not password:
+            error = "Пожалуйста, заполните все поля."
+        else:
+            user = authenticate(request, username=username, password=password)
+            if user is not None:
+                if user.is_active:
+                    login(request, user)
+                    logger.info(f"User {username} logged in successfully")
+                    return redirect(request.GET.get("next") or "/dashboard/")
+                else:
+                    error = "Этот аккаунт деактивирован."
+                    logger.warning(f"Inactive user attempted login: {username}")
+            else:
+                error = "Неверный логин или пароль."
+                logger.warning(f"Failed login attempt for username: {username}")
 
     return render(request, "core/login.html", {"error": error})
 
 
 def logout_view(request):
+    """User logout view."""
+    username = request.user.username if request.user.is_authenticated else "Anonymous"
     logout(request)
+    logger.info(f"User {username} logged out")
     return redirect("/login/")
 
 
@@ -575,28 +602,46 @@ def settings_view(request):
 # =========================
 
 @login_required
+@require_POST
 def api_toggle_homework(request, hw_id: int):
-    if request.method != "POST":
-        return JsonResponse({"ok": False, "error": "POST required"}, status=405)
+    """API endpoint to toggle homework completion status."""
+    try:
+        hw = get_object_or_404(Homework, id=hw_id)
+        
+        # Permission check
+        if hw.student.user_id != request.user.id:
+            logger.warning(f"User {request.user.username} attempted to toggle homework {hw_id} without permission")
+            return JsonResponse({"ok": False, "error": "Forbidden"}, status=403)
 
-    hw = get_object_or_404(Homework, id=hw_id)
-    if hw.student.user_id != request.user.id:
-        return HttpResponseForbidden("Forbidden")
-
-    hw.completed = not hw.completed
-    hw.save(update_fields=["completed"])
-    return JsonResponse({"ok": True, "completed": hw.completed})
+        hw.completed = not hw.completed
+        hw.save(update_fields=["completed"])
+        
+        logger.info(f"Homework {hw_id} toggled to {hw.completed} by user {request.user.username}")
+        return JsonResponse({"ok": True, "completed": hw.completed})
+    except Exception as e:
+        logger.error(f"Error toggling homework {hw_id}: {e}")
+        return JsonResponse({"ok": False, "error": "Server error"}, status=500)
 
 
 @login_required
+@require_POST
 def api_mark_notification_read(request, notif_id: int):
-    if request.method != "POST":
-        return JsonResponse({"ok": False, "error": "POST required"}, status=405)
+    """API endpoint to mark notification as read."""
+    try:
+        n = get_object_or_404(Notification, id=notif_id, user=request.user)
+        
+        if not n.is_read:
+            n.is_read = True
+            n.save(update_fields=["is_read"])
+            
+            # Invalidate cache for unread notifications count
+            cache_key = f"unread_notif_count_{request.user.id}"
+            cache.delete(cache_key)
+            
+            logger.info(f"Notification {notif_id} marked as read by user {request.user.username}")
 
-    n = get_object_or_404(Notification, id=notif_id, user=request.user)
-    if not n.is_read:
-        n.is_read = True
-        n.save(update_fields=["is_read"])
-
-    unread_count = Notification.objects.filter(user=request.user, is_read=False).count()
-    return JsonResponse({"ok": True, "unread_count": unread_count})
+        unread_count = Notification.objects.filter(user=request.user, is_read=False).count()
+        return JsonResponse({"ok": True, "unread_count": unread_count})
+    except Exception as e:
+        logger.error(f"Error marking notification {notif_id} as read: {e}")
+        return JsonResponse({"ok": False, "error": "Server error"}, status=500)

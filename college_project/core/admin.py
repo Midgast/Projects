@@ -8,6 +8,7 @@ from .models import (
     Student,
     Teacher,
     Director,
+    UserProfile,
     ScheduleEntry,
     Grade,
     Homework,
@@ -24,7 +25,7 @@ from .models import (
 class GroupAdmin(admin.ModelAdmin):
     list_display = ("name", "code", "id")
     search_fields = ("name", "code")
-    ordering = ("name",)
+    ordering = ("code",)
 
 
 @admin.register(Subject)
@@ -32,6 +33,15 @@ class SubjectAdmin(admin.ModelAdmin):
     list_display = ("name", "code", "id")
     search_fields = ("name", "code")
     ordering = ("name",)
+
+
+@admin.register(UserProfile)
+class UserProfileAdmin(admin.ModelAdmin):
+    list_display = ("user", "role")
+    list_filter = ("role",)
+    search_fields = ("user__username", "user__first_name", "user__last_name")
+    autocomplete_fields = ("user",)
+    ordering = ("user__username",)
 
 
 # -----------------------------
@@ -155,5 +165,6 @@ admin.site.unregister(User)
 
 @admin.register(User)
 class UserAdmin(DjangoUserAdmin):
-    list_display = ("username", "first_name", "last_name", "is_staff", "is_superuser", "is_active")
+    list_display = ("username", "first_name", "last_name", "email", "is_staff", "is_superuser", "is_active")
     search_fields = ("username", "first_name", "last_name", "email")
+    list_filter = ("is_staff", "is_superuser", "is_active", "date_joined")

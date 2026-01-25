@@ -1,25 +1,34 @@
+"""
+Core models for the college management system.
+"""
 from django.conf import settings
 from django.core.validators import MaxValueValidator, MinValueValidator
 from django.db import models
 
 
 class Group(models.Model):
-    name = models.CharField(max_length=64)
-    code = models.CharField(max_length=16, unique=True)
+    """Student group/class model."""
+    name = models.CharField(max_length=64, verbose_name="Название")
+    code = models.CharField(max_length=16, unique=True, verbose_name="Код группы")
 
     class Meta:
         ordering = ["code"]
+        verbose_name = "Группа"
+        verbose_name_plural = "Группы"
 
     def __str__(self) -> str:
         return self.code
 
 
 class Subject(models.Model):
-    name = models.CharField(max_length=64)
-    code = models.CharField(max_length=16, unique=True)
+    """Academic subject model."""
+    name = models.CharField(max_length=64, verbose_name="Название предмета")
+    code = models.CharField(max_length=16, unique=True, verbose_name="Код предмета")
 
     class Meta:
         ordering = ["code"]
+        verbose_name = "Предмет"
+        verbose_name_plural = "Предметы"
 
     def __str__(self) -> str:
         return self.name
@@ -87,14 +96,33 @@ class Director(models.Model):
 
 
 class UserProfile(models.Model):
-    user = models.OneToOneField(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
-    role = models.CharField(max_length=10, default='student')
+    """User profile model for role management."""
+    ROLE_CHOICES = [
+        ('student', 'Студент'),
+        ('teacher', 'Преподаватель'),
+        ('director', 'Директор'),
+    ]
+    
+    user = models.OneToOneField(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.CASCADE,
+        related_name='userprofile',
+        verbose_name="Пользователь"
+    )
+    role = models.CharField(
+        max_length=10,
+        choices=ROLE_CHOICES,
+        default='student',
+        verbose_name="Роль"
+    )
 
     class Meta:
         ordering = ["user__username"]
+        verbose_name = "Профиль пользователя"
+        verbose_name_plural = "Профили пользователей"
 
     def __str__(self) -> str:
-        return f"{self.user.username} ({self.role})"
+        return f"{self.user.username} ({self.get_role_display()})"
 
 
 class ScheduleEntry(models.Model):
