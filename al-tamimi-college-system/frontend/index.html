@@ -7,7 +7,6 @@
     <script src="https://unpkg.com/react@18/umd/react.development.js"></script>
     <script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
     <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
-    <script src="https://unpkg.com/react-router-dom@6/umd/react-router-dom.min.js"></script>
     <style>
         * {
             margin: 0;
@@ -172,14 +171,12 @@
 
     <script type="text/babel">
         const { useState, useEffect } = React;
-        const { BrowserRouter, Routes, Route, Navigate, useNavigate } = ReactRouterDOM;
 
         function SimpleLogin() {
             const [email, setEmail] = useState("admin@altamimi.local");
             const [password, setPassword] = useState("admin");
             const [error, setError] = useState("");
             const [loading, setLoading] = useState(false);
-            const navigate = useNavigate();
 
             const handleLogin = async (e) => {
                 e.preventDefault();
@@ -200,7 +197,7 @@
                     if (response.ok) {
                         localStorage.setItem("token", data.token);
                         localStorage.setItem("user", JSON.stringify(data.user));
-                        navigate("/");
+                        window.location.href = "/dashboard.html";
                     } else {
                         setError(data.error || "Login failed");
                     }
@@ -259,7 +256,6 @@
 
         function SimpleDashboard() {
             const [user, setUser] = useState(null);
-            const navigate = useNavigate();
 
             useEffect(() => {
                 const userData = localStorage.getItem("user");
@@ -271,11 +267,12 @@
             const handleLogout = () => {
                 localStorage.removeItem("token");
                 localStorage.removeItem("user");
-                navigate("/login");
+                window.location.href = "/";
             };
 
             if (!user) {
-                return <Navigate to="/login" replace />;
+                window.location.href = "/";
+                return null;
             }
 
             return (
@@ -310,15 +307,13 @@
         }
 
         function App() {
-            return (
-                <BrowserRouter>
-                    <Routes>
-                        <Route path="/login" element={<SimpleLogin />} />
-                        <Route path="/" element={<SimpleDashboard />} />
-                        <Route path="/*" element={<Navigate to="/" replace />} />
-                    </Routes>
-                </BrowserRouter>
-            );
+            const token = localStorage.getItem("token");
+            
+            if (!token) {
+                return <SimpleLogin />;
+            }
+            
+            return <SimpleDashboard />;
         }
 
         ReactDOM.createRoot(document.getElementById("root")).render(<App />);
