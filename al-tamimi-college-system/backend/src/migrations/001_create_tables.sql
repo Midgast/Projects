@@ -3,7 +3,8 @@ CREATE TABLE IF NOT EXISTS users (
     id SERIAL PRIMARY KEY,
     email VARCHAR(255) UNIQUE NOT NULL,
     password_hash VARCHAR(255) NOT NULL,
-    full_name VARCHAR(255) NOT NULL,
+    username VARCHAR(255) NOT NULL,
+    full_name VARCHAR(255),
     role VARCHAR(50) NOT NULL CHECK (role IN ('student', 'teacher', 'admin')),
     group_id INTEGER REFERENCES groups(id),
     performance_index DECIMAL(5,2) DEFAULT 0.00,
@@ -113,11 +114,11 @@ INSERT INTO subjects (name, description) VALUES
 ('Database', 'Database Design'),
 ('English', 'English Language');
 
-INSERT INTO users (email, password_hash, full_name, role, group_id) VALUES
-('admin@altamimi.edu', '$2a$10$rQZ8kHWKQGYQkYvYvGQwI.8vQfQfQfQfQfQfQfQfQfQfQfQfQfQfQf', 'Admin User', 'admin', NULL),
-('teacher1@altamimi.edu', '$2a$10$rQZ8kHWKQGYQkYvYvGQwI.8vQfQfQfQfQfQfQfQfQfQfQfQfQfQfQf', 'Teacher One', 'teacher', NULL),
-('student1@altamimi.edu', '$2a$10$rQZ8kHWKQGYQkYvYvGQwI.8vQfQfQfQfQfQfQfQfQfQfQfQfQfQfQf', 'Student One', 'student', 1),
-('student2@altamimi.edu', '$2a$10$rQZ8kHWKQGYQkYvYvGQwI.8vQfQfQfQfQfQfQfQfQfQfQfQfQfQfQf', 'Student Two', 'student', 1);
+INSERT INTO users (email, password_hash, username, full_name, role, group_id) VALUES
+('admin@altamimi.edu', '$2a$10$rQZ8kHWKQGYQkYvYvGQwI.8vQfQfQfQfQfQfQfQfQfQfQfQfQfQfQf', 'admin', 'Admin User', 'admin', NULL),
+('teacher1@altamimi.edu', '$2a$10$rQZ8kHWKQGYQkYvYvGQwI.8vQfQfQfQfQfQfQfQfQfQfQfQfQfQfQf', 'teacher1', 'Teacher One', 'teacher', NULL),
+('student1@altamimi.edu', '$2a$10$rQZ8kHWKQGYQkYvYvGQwI.8vQfQfQfQfQfQfQfQfQfQfQfQfQfQfQf', 'student1', 'Student One', 'student', 1),
+('student2@altamimi.edu', '$2a$10$rQZ8kHWKQGYQkYvYvGQwI.8vQfQfQfQfQfQfQfQfQfQfQfQfQfQfQf', 'student2', 'Student Two', 'student', 1);
 
 INSERT INTO badges (name, description, icon, condition_type, condition_value, points) VALUES
 ('Perfect Attendance', 'No absences for a month', '🏆', 'attendance_perfect', 30, 50),
